@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Zap, Sparkles } from 'lucide-react';
+import { Bot, Sparkles } from 'lucide-react';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import { cn } from '@/lib/utils';
@@ -67,7 +67,7 @@ const VivaxChat = () => {
           <div className="relative">
             <div className="absolute inset-0 bg-primary/50 rounded-full blur-xl animate-pulse-glow" />
             <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center box-glow">
-              <Zap className="w-6 h-6 text-primary-foreground" />
+              <Bot className="w-6 h-6 text-primary-foreground" />
             </div>
           </div>
           <div>
