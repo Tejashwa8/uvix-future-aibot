@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import VivaxChat from '@/components/VivaxChat';
+import VivixChat from '@/components/VivixChat';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 
@@ -36,7 +36,7 @@ const Index = () => {
       
       {/* Main Content */}
       <div className="relative z-10 h-screen flex flex-col">
-        <VivaxChat />
+        <VivixChat />
       </div>
     </div>
   );
