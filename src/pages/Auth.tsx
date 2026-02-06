@@ -144,7 +144,7 @@ const Auth = () => {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-glow bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-              Vivax
+              Vivix
             </h1>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Sparkles className="w-3 h-3" />
@@ -156,7 +156,7 @@ const Auth = () => {
         {/* Auth Card */}
         <div className="glass-panel neon-border rounded-2xl p-8">
           <h2 className="text-xl font-semibold text-center mb-6">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
+            {isLogin ? 'Welcome' : 'Create Account'}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
