@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { MessageSquare, Plus, Trash2, MoreVertical } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { MessageSquare, Plus, Trash2, MoreVertical, Pencil, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +31,7 @@ interface ConversationSidebarProps {
   onSelect: (id: string) => void;
   onNew: () => void;
   onDelete: (id: string) => void;
+  onRename: (id: string, title: string) => void;
 }
 
 const ConversationSidebar = ({
@@ -39,13 +41,53 @@ const ConversationSidebar = ({
   onSelect,
   onNew,
   onDelete,
+  onRename,
 }: ConversationSidebarProps) => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingId && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editingId]);
 
   const handleDelete = () => {
     if (deleteId) {
       onDelete(deleteId);
       setDeleteId(null);
+    }
+  };
+
+  const handleStartRename = (conversation: Conversation, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(conversation.id);
+    setEditTitle(conversation.title);
+  };
+
+  const handleSaveRename = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (editingId && editTitle.trim()) {
+      onRename(editingId, editTitle.trim());
+    }
+    setEditingId(null);
+    setEditTitle('');
+  };
+
+  const handleCancelRename = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setEditingId(null);
+    setEditTitle('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSaveRename();
+    } else if (e.key === 'Escape') {
+      handleCancelRename();
     }
   };
 
@@ -93,42 +135,77 @@ const ConversationSidebar = ({
                       ? 'bg-primary/10 border border-primary/30'
                       : 'hover:bg-secondary/50'
                   )}
-                  onClick={() => onSelect(conversation.id)}
+                  onClick={() => editingId !== conversation.id && onSelect(conversation.id)}
                 >
                   <MessageSquare className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate text-foreground">
-                      {conversation.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(conversation.updated_at), { addSuffix: true })}
-                    </p>
-                  </div>
                   
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                  {editingId === conversation.id ? (
+                    <div className="flex-1 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <Input
+                        ref={inputRef}
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        className="h-7 text-sm py-0 px-2"
+                      />
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => e.stopPropagation()}
+                        className="h-6 w-6"
+                        onClick={handleSaveRename}
                       >
-                        <MoreVertical className="h-3 w-3" />
+                        <Check className="h-3 w-3 text-primary" />
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteId(conversation.id);
-                        }}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={handleCancelRename}
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        <X className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate text-foreground">
+                          {conversation.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(conversation.updated_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={(e) => handleStartRename(conversation, e)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteId(conversation.id);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </>
+                  )}
                 </div>
               ))
             )}

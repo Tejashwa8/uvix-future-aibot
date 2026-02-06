@@ -1,14 +1,25 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { Bot, Sparkles, LogOut, Menu, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Bot, Sparkles, LogOut, Menu, User } from 'lucide-react';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import ConversationSidebar from './ConversationSidebar';
+import { ThemeToggle } from './ThemeToggle';
 import { useStreamingChat } from '@/hooks/useStreamingChat';
 import { useConversations, Message } from '@/hooks/useConversations';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { supabase } from '@/integrations/supabase/client';
 
 const INITIAL_MESSAGE: Message = {
   id: '1',
@@ -18,6 +29,7 @@ const INITIAL_MESSAGE: Message = {
 };
 
 const VivixChat = () => {
+  const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const {
     conversations,
@@ -31,10 +43,27 @@ const VivixChat = () => {
   
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { messages, isLoading, sendMessage, setMessages } = useStreamingChat([INITIAL_MESSAGE]);
+
+  // Load user profile
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (data?.avatar_url) {
+        setAvatarUrl(data.avatar_url);
+      }
+    };
+    loadProfile();
+  }, [user]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -76,6 +105,10 @@ const VivixChat = () => {
       setMessages([INITIAL_MESSAGE]);
     }
   }, [deleteConversation, activeConversationId, setMessages]);
+
+  const handleRenameConversation = useCallback(async (id: string, title: string) => {
+    await updateConversationTitle(id, title);
+  }, [updateConversationTitle]);
 
   const handleSendMessage = useCallback(async (content: string) => {
     let conversationId = activeConversationId;
@@ -122,6 +155,7 @@ const VivixChat = () => {
       onSelect={loadConversation}
       onNew={handleNewConversation}
       onDelete={handleDeleteConversation}
+      onRename={handleRenameConversation}
     />
   );
 
@@ -166,17 +200,35 @@ const VivixChat = () => {
               </div>
             </div>
 
-            {user && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={signOut}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign out
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              
+              {user && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={avatarUrl || undefined} />
+                        <AvatarFallback className="bg-secondary text-muted-foreground">
+                          <User className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate('/profile')}>
+                      <User className="h-4 w-4 mr-2" />
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={signOut}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           </div>
         </div>
 

@@ -6,6 +6,55 @@
 
 @layer base {
   :root {
+    --background: 0 0% 100%;
+    --foreground: 270 50% 10%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 270 50% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 270 50% 10%;
+
+    --primary: 270 100% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 270 20% 94%;
+    --secondary-foreground: 270 50% 15%;
+
+    --muted: 270 15% 92%;
+    --muted-foreground: 270 20% 45%;
+
+    --accent: 280 100% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 270 20% 85%;
+    --input: 270 20% 90%;
+    --ring: 270 100% 55%;
+
+    --radius: 0.75rem;
+
+    /* Vivix custom tokens */
+    --neon-glow: 270 100% 55%;
+    --neon-bright: 280 100% 65%;
+    --matrix-green: 120 100% 35%;
+    --dark-void: 270 30% 95%;
+    --glass: 270 20% 96%;
+    
+    /* Gradients */
+    --gradient-neon: linear-gradient(135deg, hsl(270 100% 55%), hsl(290 100% 50%));
+    --gradient-dark: linear-gradient(180deg, hsl(270 10% 98%), hsl(270 10% 95%));
+    --gradient-glass: linear-gradient(135deg, hsl(270 20% 98% / 0.9), hsl(270 20% 95% / 0.7));
+    
+    /* Shadows */
+    --shadow-neon: 0 0 20px hsl(270 100% 55% / 0.3), 0 0 40px hsl(270 100% 55% / 0.15);
+    --shadow-neon-sm: 0 0 10px hsl(270 100% 55% / 0.25);
+    --shadow-neon-lg: 0 0 30px hsl(270 100% 55% / 0.4), 0 0 60px hsl(270 100% 55% / 0.2);
+  }
+
+  .dark {
     --background: 270 50% 3%;
     --foreground: 270 10% 95%;
 
@@ -34,8 +83,6 @@
     --input: 270 30% 15%;
     --ring: 270 100% 65%;
 
-    --radius: 0.75rem;
-
     /* Vivix custom tokens */
     --neon-glow: 270 100% 65%;
     --neon-bright: 280 100% 75%;
@@ -52,11 +99,6 @@
     --shadow-neon: 0 0 20px hsl(270 100% 65% / 0.5), 0 0 40px hsl(270 100% 65% / 0.3);
     --shadow-neon-sm: 0 0 10px hsl(270 100% 65% / 0.4);
     --shadow-neon-lg: 0 0 30px hsl(270 100% 65% / 0.6), 0 0 60px hsl(270 100% 65% / 0.4);
-  }
-
-  .dark {
-    --background: 270 50% 3%;
-    --foreground: 270 10% 95%;
   }
 }
 
