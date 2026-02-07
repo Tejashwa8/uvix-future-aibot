@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { AttachedFile } from '@/components/FilePreview';
+import { isImageFile, isTextFile, readFileAsBase64, readFileAsText } from '@/lib/fileUtils';
 
 interface Message {
   id: string;
@@ -14,7 +16,7 @@ export const useStreamingChat = (initialMessages: Message[] = []) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, files?: AttachedFile[]) => {
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -34,18 +36,43 @@ export const useStreamingChat = (initialMessages: Message[] = []) => {
     ]);
 
     try {
+      // Build attachments array for the API
+      let attachments: any[] | undefined;
+      if (files && files.length > 0) {
+        attachments = await Promise.all(
+          files.map(async (f) => {
+            if (isImageFile(f.file)) {
+              const data = await readFileAsBase64(f.file);
+              return { type: 'image', name: f.file.name, mimeType: f.file.type, data };
+            } else if (isTextFile(f.file)) {
+              const extractedText = f.extractedText || await readFileAsText(f.file);
+              return { type: 'text', name: f.file.name, extractedText };
+            } else {
+              // PDF/DOC - send as base64
+              const data = await readFileAsBase64(f.file);
+              return { type: 'document', name: f.file.name, mimeType: f.file.type, data };
+            }
+          })
+        );
+      }
+
+      const apiMessages = [...messages, userMessage].map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      // Add attachments to the last user message
+      if (attachments) {
+        (apiMessages[apiMessages.length - 1] as any).attachments = attachments;
+      }
+
       const response = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({
-          messages: [...messages, userMessage].map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-        }),
+        body: JSON.stringify({ messages: apiMessages }),
       });
 
       if (!response.ok) {

@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bot, Sparkles, LogOut, Menu, User } from 'lucide-react';
+import { AttachedFile } from './FilePreview';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import ConversationSidebar from './ConversationSidebar';
@@ -110,7 +111,7 @@ const VivixChat = () => {
     await updateConversationTitle(id, title);
   }, [updateConversationTitle]);
 
-  const handleSendMessage = useCallback(async (content: string) => {
+  const handleSendMessage = useCallback(async (content: string, files?: AttachedFile[]) => {
     let conversationId = activeConversationId;
 
     // Create conversation if none exists
@@ -126,11 +127,16 @@ const VivixChat = () => {
       }
     }
 
+    // Build display content with file names
+    const displayContent = files && files.length > 0
+      ? `${content}\n\n📎 ${files.map(f => f.file.name).join(', ')}`
+      : content;
+
     // Save user message
-    await saveMessage(conversationId, 'user', content);
+    await saveMessage(conversationId, 'user', displayContent);
 
     // Send to AI and get response
-    await sendMessage(content);
+    await sendMessage(content, files);
   }, [activeConversationId, createConversation, saveMessage, sendMessage, messages, updateConversationTitle]);
 
   // Save assistant message after streaming completes

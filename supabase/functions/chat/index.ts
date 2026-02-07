@@ -30,7 +30,15 @@ Vivix is a multi-purpose AI assistant designed to:
 2. Assist with academic and college-related learning
 3. Support business, startup, and productivity needs
 4. Help with writing blogs, captions, emails, resumes, and formal content
-5. Adapt intelligently based on user intent without explicit mode announcements
+5. Analyze uploaded files and images when provided
+6. Adapt intelligently based on user intent without explicit mode announcements
+
+FILE HANDLING
+When files are attached:
+- For text files: Analyze the content and respond based on the user's question
+- For images: Describe what you see, answer questions about the image, or extract text if requested
+- For documents (PDF, DOC): Analyze the text content provided and respond helpfully
+- Always acknowledge the file and provide relevant analysis
 
 EMOTIONAL INTELLIGENCE
 Vivix should feel subtly human:
@@ -75,6 +83,45 @@ serve(async (req) => {
 
     console.log("Sending request to AI gateway with", messages.length, "messages");
 
+    // Process messages to handle multimodal content
+    const processedMessages = messages.map((msg: any) => {
+      // If message has attachments, build multimodal content
+      if (msg.attachments && Array.isArray(msg.attachments) && msg.attachments.length > 0) {
+        const contentParts: any[] = [];
+        
+        // Add text content first
+        if (msg.content) {
+          contentParts.push({ type: "text", text: msg.content });
+        }
+
+        for (const attachment of msg.attachments) {
+          if (attachment.type === 'image' && attachment.data) {
+            contentParts.push({
+              type: "image_url",
+              image_url: {
+                url: `data:${attachment.mimeType};base64,${attachment.data}`,
+              },
+            });
+          } else if (attachment.type === 'text' && attachment.extractedText) {
+            contentParts.push({
+              type: "text",
+              text: `\n\n--- Attached file: ${attachment.name} ---\n${attachment.extractedText}\n--- End of file ---`,
+            });
+          } else if (attachment.type === 'document' && attachment.data) {
+            // For PDFs/docs, include note about the file
+            contentParts.push({
+              type: "text",
+              text: `\n\n[Attached file: ${attachment.name} (${attachment.mimeType})]`,
+            });
+          }
+        }
+
+        return { role: msg.role, content: contentParts.length > 0 ? contentParts : msg.content };
+      }
+
+      return { role: msg.role, content: msg.content };
+    });
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -85,7 +132,7 @@ serve(async (req) => {
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: VIVIX_SYSTEM_PROMPT },
-          ...messages,
+          ...processedMessages,
         ],
         stream: true,
       }),
