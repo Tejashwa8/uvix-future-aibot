@@ -21,8 +21,10 @@ interface ChatInputProps {
 const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
   const [input, setInput] = useState('');
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   const handleVoiceResult = useCallback((text: string) => {
@@ -57,13 +59,10 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
     }
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-
+  const processFiles = useCallback(async (fileList: File[]) => {
     const newFiles: AttachedFile[] = [];
 
-    for (const file of files) {
+    for (const file of fileList) {
       if (file.size > MAX_FILE_SIZE) {
         toast({
           variant: 'destructive',
@@ -80,17 +79,48 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
       } else if (isTextFile(file)) {
         attached.extractedText = await readFileAsText(file);
       } else {
-        // PDF/DOC - we'll send as base64 to the edge function
         attached.preview = undefined;
       }
 
       newFiles.push(attached);
     }
 
-    setAttachedFiles((prev) => [...prev, ...newFiles].slice(0, 5)); // max 5 files
-    // Reset input so same file can be re-selected
+    setAttachedFiles((prev) => [...prev, ...newFiles].slice(0, 5));
+  }, [toast]);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    await processFiles(files);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set false if leaving the drop zone entirely
+    if (dropZoneRef.current && !dropZoneRef.current.contains(e.relatedTarget as Node)) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      await processFiles(files);
+    }
+  }, [processFiles]);
 
   const removeFile = (index: number) => {
     setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
@@ -104,11 +134,24 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
   }, [input]);
 
   return (
-    <div className="relative">
+    <div
+      ref={dropZoneRef}
+      className="relative"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       {/* Glow effect behind input */}
       <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-2xl blur-xl opacity-50" />
 
-      <div className="relative glass-panel neon-border rounded-2xl p-2">
+      {/* Drag overlay */}
+      {isDragging && (
+        <div className="absolute inset-0 z-20 bg-primary/10 border-2 border-dashed border-primary rounded-2xl flex items-center justify-center backdrop-blur-sm">
+          <p className="text-sm font-medium text-primary">Drop files here</p>
+        </div>
+      )}
+
+      <div className={cn("relative glass-panel neon-border rounded-2xl p-2", isDragging && "opacity-50")}>
         {/* File previews */}
         <FilePreview files={attachedFiles} onRemove={removeFile} />
 
