@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
-import { Bot, User } from 'lucide-react';
+import { Bot, User, Download } from 'lucide-react';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
@@ -90,6 +91,18 @@ const ChatMessage = ({ role, content, isTyping }: ChatMessageProps) => {
                 ),
                 blockquote: (props) => (
                   <blockquote className="border-l-2 border-primary/50 pl-3 italic text-muted-foreground text-sm" {...props} />
+                ),
+                img: ({ src, alt }) => (
+                  <div className="relative group my-2">
+                    <img src={src} alt={alt || 'Generated image'} className="rounded-lg max-w-full" />
+                    <a
+                      href={src}
+                      download="vivix-image.png"
+                      className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Download className="w-4 h-4 text-foreground" />
+                    </a>
+                  </div>
                 ),
               }}
             >

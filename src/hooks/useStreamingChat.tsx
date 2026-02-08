@@ -10,6 +10,9 @@ interface Message {
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+const IMAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`;
+
+const IMAGE_MARKER_REGEX = /\[GENERATE_IMAGE:\s*(.*?)\]/g;
 
 export const useStreamingChat = (initialMessages: Message[] = []) => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -143,6 +146,45 @@ export const useStreamingChat = (initialMessages: Message[] = []) => {
         }
       }
 
+      // Process image generation markers
+      const imageMatches = [...assistantContent.matchAll(IMAGE_MARKER_REGEX)];
+      if (imageMatches.length > 0) {
+        let processedContent = assistantContent;
+        for (const match of imageMatches) {
+          const prompt = match[1].trim();
+          try {
+            const imgRes = await fetch(IMAGE_URL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              },
+              body: JSON.stringify({ prompt }),
+            });
+            if (imgRes.ok) {
+              const imgData = await imgRes.json();
+              if (imgData.imageUrl) {
+                processedContent = processedContent.replace(
+                  match[0],
+                  `![Generated Image](${imgData.imageUrl})`
+                );
+              } else {
+                processedContent = processedContent.replace(match[0], '*Image generation failed.*');
+              }
+            } else {
+              processedContent = processedContent.replace(match[0], '*Image generation failed.*');
+            }
+          } catch {
+            processedContent = processedContent.replace(match[0], '*Image generation failed.*');
+          }
+        }
+        assistantContent = processedContent;
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId ? { ...m, content: assistantContent } : m
+          )
+        );
+      }
       // Final flush
       if (textBuffer.trim()) {
         for (let raw of textBuffer.split('\n')) {
