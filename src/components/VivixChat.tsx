@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bot, Sparkles, LogOut, Menu, User } from 'lucide-react';
-import { AttachedFile } from './FilePreview';
+import { Bot, Sparkles, LogOut, Menu, User, PanelLeftClose, PanelLeft } from 'lucide-react';
+import type { AttachedFile } from './FilePreview';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import ConversationSidebar from './ConversationSidebar';
@@ -37,6 +37,7 @@ const VivixChat = () => {
     isLoading: conversationsLoading,
     createConversation,
     deleteConversation,
+    deleteAllConversations,
     getMessages,
     saveMessage,
     updateConversationTitle,
@@ -44,6 +45,7 @@ const VivixChat = () => {
   
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -107,6 +109,12 @@ const VivixChat = () => {
     }
   }, [deleteConversation, activeConversationId, setMessages]);
 
+  const handleDeleteAllConversations = useCallback(async () => {
+    await deleteAllConversations();
+    setActiveConversationId(null);
+    setMessages([INITIAL_MESSAGE]);
+  }, [deleteAllConversations, setMessages]);
+
   const handleRenameConversation = useCallback(async (id: string, title: string) => {
     await updateConversationTitle(id, title);
   }, [updateConversationTitle]);
@@ -162,13 +170,14 @@ const VivixChat = () => {
       onNew={handleNewConversation}
       onDelete={handleDeleteConversation}
       onRename={handleRenameConversation}
+      onDeleteAll={handleDeleteAllConversations}
     />
   );
 
   return (
     <div className="flex h-full">
       {/* Desktop Sidebar */}
-      {!isMobile && SidebarContent}
+      {!isMobile && desktopSidebarOpen && SidebarContent}
 
       {/* Main Chat Area */}
       <div className="flex flex-col flex-1 max-w-4xl mx-auto">
@@ -176,7 +185,7 @@ const VivixChat = () => {
         <div className="flex-shrink-0 py-6 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {isMobile && (
+              {isMobile ? (
                 <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                   <SheetTrigger asChild>
                     <Button variant="ghost" size="icon" className="mr-2">
@@ -187,6 +196,19 @@ const VivixChat = () => {
                     {SidebarContent}
                   </SheetContent>
                 </Sheet>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="mr-2"
+                  onClick={() => setDesktopSidebarOpen((prev) => !prev)}
+                >
+                  {desktopSidebarOpen ? (
+                    <PanelLeftClose className="h-5 w-5" />
+                  ) : (
+                    <PanelLeft className="h-5 w-5" />
+                  )}
+                </Button>
               )}
               
               <div className="relative">
@@ -245,6 +267,7 @@ const VivixChat = () => {
               key={message.id}
               role={message.role}
               content={message.content}
+              files={message.files}
             />
           ))}
           
