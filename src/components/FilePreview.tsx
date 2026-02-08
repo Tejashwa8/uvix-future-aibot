@@ -1,5 +1,14 @@
-import { X, FileText, Image as ImageIcon } from 'lucide-react';
+import { X, FileText, Image as ImageIcon, FileType, FileSpreadsheet } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { isImageFile } from '@/lib/fileUtils';
+
+const getFileIcon = (file: File) => {
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  if (isImageFile(file)) return <ImageIcon className="w-4 h-4 text-green-500 flex-shrink-0" />;
+  if (ext === 'pdf') return <FileType className="w-4 h-4 text-red-500 flex-shrink-0" />;
+  if (ext === 'doc' || ext === 'docx') return <FileSpreadsheet className="w-4 h-4 text-blue-500 flex-shrink-0" />;
+  return <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />;
+};
 
 export interface AttachedFile {
   file: File;
@@ -28,7 +37,7 @@ const FilePreview = ({ files, onRemove }: FilePreviewProps) => {
           {f.preview ? (
             <img src={f.preview} alt="" className="w-8 h-8 rounded object-cover" />
           ) : (
-            <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            getFileIcon(f.file)
           )}
           <span className="truncate text-foreground">{f.file.name}</span>
           <button
