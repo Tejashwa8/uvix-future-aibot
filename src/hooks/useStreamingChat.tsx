@@ -7,6 +7,7 @@ interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  files?: AttachedFile[];
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
@@ -24,6 +25,7 @@ export const useStreamingChat = (initialMessages: Message[] = []) => {
       id: Date.now().toString(),
       role: 'user',
       content,
+      files,
     };
 
     setMessages((prev) => [...prev, userMessage]);

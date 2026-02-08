@@ -32,6 +32,7 @@ interface ConversationSidebarProps {
   onNew: () => void;
   onDelete: (id: string) => void;
   onRename: (id: string, title: string) => void;
+  onDeleteAll: () => void;
 }
 
 const ConversationSidebar = ({
@@ -42,8 +43,10 @@ const ConversationSidebar = ({
   onNew,
   onDelete,
   onRename,
+  onDeleteAll,
 }: ConversationSidebarProps) => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteAllOpen, setDeleteAllOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -211,16 +214,30 @@ const ConversationSidebar = ({
             )}
           </div>
         </ScrollArea>
+
+        {/* Delete All History */}
+        {conversations.length > 0 && (
+          <div className="p-2 border-t border-border">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 text-xs"
+              onClick={() => setDeleteAllOpen(true)}
+            >
+              <Trash2 className="h-3.5 w-3.5 mr-2" />
+              Delete all history
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* Delete Confirmation */}
+      {/* Delete Single Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete conversation?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete this conversation and all its messages.
-              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -230,6 +247,30 @@ const ConversationSidebar = ({
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete All Confirmation */}
+      <AlertDialog open={deleteAllOpen} onOpenChange={setDeleteAllOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete all conversations?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all conversations and messages. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDeleteAll();
+                setDeleteAllOpen(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete all
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

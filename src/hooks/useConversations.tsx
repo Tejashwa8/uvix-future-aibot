@@ -107,6 +107,26 @@ export const useConversations = () => {
     }
   }, [toast]);
 
+  const deleteAllConversations = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      setConversations([]);
+    } catch (error) {
+      console.error('Error deleting all conversations:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Failed to delete history',
+        description: 'Please try again.',
+      });
+    }
+  }, [user, toast]);
+
   const getMessages = useCallback(async (conversationId: string): Promise<Message[]> => {
     try {
       const { data, error } = await supabase
@@ -161,6 +181,7 @@ export const useConversations = () => {
     createConversation,
     updateConversationTitle,
     deleteConversation,
+    deleteAllConversations,
     getMessages,
     saveMessage,
     refetch: fetchConversations,
