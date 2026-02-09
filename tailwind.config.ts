@@ -14,7 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'],
+        heading: ['Space Grotesk', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
@@ -54,8 +55,8 @@ export default {
         neon: {
           glow: "hsl(var(--neon-glow))",
           bright: "hsl(var(--neon-bright))",
+          cyan: "hsl(var(--neon-cyan))",
         },
-        matrix: "hsl(var(--matrix-green))",
         glass: "hsl(var(--glass))",
       },
       borderRadius: {

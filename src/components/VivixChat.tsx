@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bot, Sparkles, LogOut, Menu, User, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { Bot, Sparkles, LogOut, Menu, User, PanelLeftClose, PanelLeft, Send } from 'lucide-react';
 import type { AttachedFile } from './FilePreview';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -172,7 +172,7 @@ const VivixChat = () => {
 
       <div className="flex flex-col flex-1 max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex-shrink-0 py-6 px-4">
+        <div className="flex-shrink-0 py-5 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {isMobile ? (
@@ -202,17 +202,17 @@ const VivixChat = () => {
               )}
               
               <div className="relative">
-                <div className="absolute inset-0 bg-primary/50 rounded-full blur-xl animate-pulse" />
-                <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center box-glow">
+                <div className="absolute inset-0 bg-primary/40 rounded-full blur-xl animate-pulse" />
+                <div className="relative w-12 h-12 rounded-full flex items-center justify-center animate-glow-pulse" style={{ background: 'var(--gradient-neon)' }}>
                   <Bot className="w-6 h-6 text-primary-foreground" />
                 </div>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-glow bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold font-heading gradient-text">
                   Uvix
                 </h1>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
+                  <Sparkles className="w-3 h-3 text-accent" />
                   Premium AI Assistant
                 </p>
               </div>

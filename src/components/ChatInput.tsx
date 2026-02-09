@@ -34,11 +34,10 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
   const { isListening, transcript, startListening, stopListening, isSupported: voiceSupported } =
     useVoiceInput(handleVoiceResult);
 
-  // Update input with interim transcript
   useEffect(() => {
     if (isListening && transcript) {
       setInput((prev) => {
-        const base = prev.replace(/\s*\[.*?\]\s*$/, ''); // remove old interim
+        const base = prev.replace(/\s*\[.*?\]\s*$/, '');
         return base ? base + ' ' + transcript : transcript;
       });
     }
@@ -53,38 +52,21 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
   };
 
   const processFiles = useCallback(async (fileList: File[]) => {
     const newFiles: AttachedFile[] = [];
-
     for (const file of fileList) {
       if (file.size > MAX_FILE_SIZE) {
-        toast({
-          variant: 'destructive',
-          title: 'File too large',
-          description: `${file.name} exceeds the 10MB limit.`,
-        });
+        toast({ variant: 'destructive', title: 'File too large', description: `${file.name} exceeds the 10MB limit.` });
         continue;
       }
-
       const attached: AttachedFile = { file };
-
-      if (isImageFile(file)) {
-        attached.preview = await readFileAsDataURL(file);
-      } else if (isTextFile(file)) {
-        attached.extractedText = await readFileAsText(file);
-      } else {
-        attached.preview = undefined;
-      }
-
+      if (isImageFile(file)) attached.preview = await readFileAsDataURL(file);
+      else if (isTextFile(file)) attached.extractedText = await readFileAsText(file);
       newFiles.push(attached);
     }
-
     setAttachedFiles((prev) => [...prev, ...newFiles].slice(0, 5));
   }, [toast]);
 
@@ -95,36 +77,18 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Drag and drop handlers
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }, []);
-
+  const handleDragOver = useCallback((e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }, []);
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Only set false if leaving the drop zone entirely
-    if (dropZoneRef.current && !dropZoneRef.current.contains(e.relatedTarget as Node)) {
-      setIsDragging(false);
-    }
+    e.preventDefault(); e.stopPropagation();
+    if (dropZoneRef.current && !dropZoneRef.current.contains(e.relatedTarget as Node)) setIsDragging(false);
   }, []);
-
   const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
+    e.preventDefault(); e.stopPropagation(); setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      await processFiles(files);
-    }
+    if (files.length > 0) await processFiles(files);
   }, [processFiles]);
 
-  const removeFile = (index: number) => {
-    setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
-  };
+  const removeFile = (index: number) => { setAttachedFiles((prev) => prev.filter((_, i) => i !== index)); };
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -134,50 +98,34 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
   }, [input]);
 
   return (
-    <div
-      ref={dropZoneRef}
-      className="relative"
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
-      {/* Glow effect behind input */}
-      <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-2xl blur-xl opacity-50" />
+    <div ref={dropZoneRef} className="relative" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
+      {/* Gradient glow behind input */}
+      <div className="absolute -inset-1 rounded-2xl blur-xl opacity-40" style={{ background: 'var(--gradient-neon)' }} />
 
-      {/* Drag overlay */}
       {isDragging && (
-        <div className="absolute inset-0 z-20 bg-primary/10 border-2 border-dashed border-primary rounded-2xl flex items-center justify-center backdrop-blur-sm">
-          <p className="text-sm font-medium text-primary">Drop files here</p>
+        <div className="absolute inset-0 z-20 bg-accent/10 border-2 border-dashed border-accent rounded-2xl flex items-center justify-center backdrop-blur-sm">
+          <p className="text-sm font-medium text-accent">Drop files here</p>
         </div>
       )}
 
       <div className={cn("relative glass-panel neon-border rounded-2xl p-2", isDragging && "opacity-50")}>
-        {/* File previews */}
         <FilePreview files={attachedFiles} onRemove={removeFile} />
 
         <div className="flex items-end gap-2">
-          {/* File attach button */}
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled}
             className={cn(
-              'flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-colors',
-              'text-muted-foreground hover:text-foreground hover:bg-secondary/50',
+              'flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-all',
+              'text-muted-foreground hover:text-accent hover:bg-accent/10',
               disabled && 'opacity-50 cursor-not-allowed'
             )}
-            title="Attach file (TXT, PDF, DOC, DOCX, JPG, PNG)"
+            title="Attach file"
           >
             <Paperclip className="w-4 h-4" />
           </button>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ACCEPTED_EXTENSIONS}
-            multiple
-            onChange={handleFileSelect}
-            className="hidden"
-          />
+          <input ref={fileInputRef} type="file" accept={ACCEPTED_EXTENSIONS} multiple onChange={handleFileSelect} className="hidden" />
 
           <div className="flex-1 relative">
             <textarea
@@ -196,7 +144,6 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
             />
           </div>
 
-          {/* Voice input button */}
           {voiceSupported && (
             <button
               onClick={isListening ? stopListening : startListening}
@@ -205,7 +152,7 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
                 'flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-all',
                 isListening
                   ? 'bg-destructive/20 text-destructive animate-pulse'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50',
+                  : 'text-muted-foreground hover:text-accent hover:bg-accent/10',
                 disabled && 'opacity-50 cursor-not-allowed'
               )}
               title={isListening ? 'Stop recording' : 'Voice input'}
@@ -214,23 +161,19 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
             </button>
           )}
 
-          {/* Send button */}
+          {/* Send button with cyan accent */}
           <button
             onClick={handleSubmit}
             disabled={(!input.trim() && attachedFiles.length === 0) || disabled}
             className={cn(
-              'flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center',
-              'transition-all duration-300',
+              'flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300',
               (input.trim() || attachedFiles.length > 0) && !disabled
-                ? 'bg-gradient-to-br from-primary to-accent text-primary-foreground box-glow hover:scale-105'
+                ? 'text-primary-foreground box-glow hover:scale-105'
                 : 'bg-muted text-muted-foreground cursor-not-allowed'
             )}
+            style={(input.trim() || attachedFiles.length > 0) && !disabled ? { background: 'var(--gradient-neon)' } : undefined}
           >
-            {disabled ? (
-              <Sparkles className="w-5 h-5 animate-pulse" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
+            {disabled ? <Sparkles className="w-5 h-5 animate-pulse" /> : <Send className="w-5 h-5" />}
           </button>
         </div>
       </div>
