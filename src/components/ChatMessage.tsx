@@ -130,7 +130,7 @@ const ChatMessage = ({ role, content, isTyping, files }: ChatMessageProps) => {
                         <img src={src} alt={alt || 'Generated image'} className="rounded-lg max-w-full" />
                         <a
                           href={src}
-                          download="vivix-image.png"
+                          download="uvix-image.png"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"

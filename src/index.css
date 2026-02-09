@@ -6,99 +6,99 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 270 50% 10%;
+    --background: 222 47% 11%;
+    --foreground: 220 13% 91%;
 
-    --card: 0 0% 98%;
-    --card-foreground: 270 50% 10%;
+    --card: 222 47% 11%;
+    --card-foreground: 220 13% 91%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 270 50% 10%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 220 13% 91%;
 
-    --primary: 270 100% 55%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 270 20% 94%;
-    --secondary-foreground: 270 50% 15%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 220 13% 91%;
 
-    --muted: 270 15% 92%;
-    --muted-foreground: 270 20% 45%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 218 11% 65%;
 
-    --accent: 280 100% 60%;
+    --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 270 20% 85%;
-    --input: 270 20% 90%;
-    --ring: 270 100% 55%;
+    --border: 217 33% 20%;
+    --input: 217 33% 17%;
+    --ring: 217 91% 60%;
 
     --radius: 0.75rem;
 
-    /* Vivix custom tokens */
-    --neon-glow: 270 100% 55%;
-    --neon-bright: 280 100% 65%;
+    /* Uvix custom tokens */
+    --neon-glow: 217 91% 60%;
+    --neon-bright: 217 91% 70%;
     --matrix-green: 120 100% 35%;
-    --dark-void: 270 30% 95%;
-    --glass: 270 20% 96%;
+    --dark-void: 222 47% 5%;
+    --glass: 217 33% 14%;
     
     /* Gradients */
-    --gradient-neon: linear-gradient(135deg, hsl(270 100% 55%), hsl(290 100% 50%));
-    --gradient-dark: linear-gradient(180deg, hsl(270 10% 98%), hsl(270 10% 95%));
-    --gradient-glass: linear-gradient(135deg, hsl(270 20% 98% / 0.9), hsl(270 20% 95% / 0.7));
+    --gradient-neon: linear-gradient(135deg, hsl(217 91% 60%), hsl(210 100% 50%));
+    --gradient-dark: linear-gradient(180deg, hsl(222 47% 11%), hsl(222 47% 5%));
+    --gradient-glass: linear-gradient(135deg, hsl(217 33% 14% / 0.8), hsl(217 33% 10% / 0.6));
     
     /* Shadows */
-    --shadow-neon: 0 0 20px hsl(270 100% 55% / 0.3), 0 0 40px hsl(270 100% 55% / 0.15);
-    --shadow-neon-sm: 0 0 10px hsl(270 100% 55% / 0.25);
-    --shadow-neon-lg: 0 0 30px hsl(270 100% 55% / 0.4), 0 0 60px hsl(270 100% 55% / 0.2);
+    --shadow-neon: 0 0 20px hsl(217 91% 60% / 0.4), 0 0 40px hsl(217 91% 60% / 0.2);
+    --shadow-neon-sm: 0 0 10px hsl(217 91% 60% / 0.3);
+    --shadow-neon-lg: 0 0 30px hsl(217 91% 60% / 0.5), 0 0 60px hsl(217 91% 60% / 0.3);
   }
 
   .dark {
-    --background: 270 50% 3%;
-    --foreground: 270 10% 95%;
+    --background: 222 47% 4%;
+    --foreground: 220 13% 91%;
 
-    --card: 270 40% 6%;
-    --card-foreground: 270 10% 95%;
+    --card: 222 47% 7%;
+    --card-foreground: 220 13% 91%;
 
-    --popover: 270 40% 8%;
-    --popover-foreground: 270 10% 95%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 220 13% 91%;
 
-    --primary: 270 100% 65%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 270 30% 12%;
-    --secondary-foreground: 270 10% 90%;
+    --secondary: 217 33% 12%;
+    --secondary-foreground: 220 13% 91%;
 
-    --muted: 270 20% 15%;
-    --muted-foreground: 270 10% 60%;
+    --muted: 217 33% 15%;
+    --muted-foreground: 218 11% 60%;
 
-    --accent: 280 100% 70%;
+    --accent: 217 91% 65%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 270 30% 20%;
-    --input: 270 30% 15%;
-    --ring: 270 100% 65%;
+    --border: 217 33% 18%;
+    --input: 217 33% 13%;
+    --ring: 217 91% 60%;
 
-    /* Vivix custom tokens */
-    --neon-glow: 270 100% 65%;
-    --neon-bright: 280 100% 75%;
+    /* Uvix custom tokens */
+    --neon-glow: 217 91% 65%;
+    --neon-bright: 217 91% 75%;
     --matrix-green: 120 100% 50%;
-    --dark-void: 270 50% 2%;
-    --glass: 270 30% 10%;
+    --dark-void: 222 47% 2%;
+    --glass: 217 33% 10%;
     
     /* Gradients */
-    --gradient-neon: linear-gradient(135deg, hsl(270 100% 65%), hsl(290 100% 60%));
-    --gradient-dark: linear-gradient(180deg, hsl(270 50% 5%), hsl(270 50% 2%));
-    --gradient-glass: linear-gradient(135deg, hsl(270 30% 12% / 0.8), hsl(270 30% 8% / 0.6));
+    --gradient-neon: linear-gradient(135deg, hsl(217 91% 65%), hsl(210 100% 55%));
+    --gradient-dark: linear-gradient(180deg, hsl(222 47% 5%), hsl(222 47% 2%));
+    --gradient-glass: linear-gradient(135deg, hsl(217 33% 12% / 0.8), hsl(217 33% 8% / 0.6));
     
     /* Shadows */
-    --shadow-neon: 0 0 20px hsl(270 100% 65% / 0.5), 0 0 40px hsl(270 100% 65% / 0.3);
-    --shadow-neon-sm: 0 0 10px hsl(270 100% 65% / 0.4);
-    --shadow-neon-lg: 0 0 30px hsl(270 100% 65% / 0.6), 0 0 60px hsl(270 100% 65% / 0.4);
+    --shadow-neon: 0 0 20px hsl(217 91% 65% / 0.5), 0 0 40px hsl(217 91% 65% / 0.3);
+    --shadow-neon-sm: 0 0 10px hsl(217 91% 65% / 0.4);
+    --shadow-neon-lg: 0 0 30px hsl(217 91% 65% / 0.6), 0 0 60px hsl(217 91% 65% / 0.4);
   }
 }
 

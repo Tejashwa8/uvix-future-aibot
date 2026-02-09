@@ -25,7 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 const INITIAL_MESSAGE: Message = {
   id: '1',
   role: 'assistant',
-  content: "Hello. I'm Vivix — your intelligent assistant. I'm here to help with questions, writing, learning, and more. How can I assist you today?",
+  content: "How can I assist you today?",
   created_at: new Date().toISOString(),
 };
 
@@ -76,7 +76,6 @@ const VivixChat = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Load messages when conversation changes
   const loadConversation = useCallback(async (conversationId: string) => {
     const msgs = await getMessages(conversationId);
     if (msgs.length > 0) {
@@ -122,32 +121,25 @@ const VivixChat = () => {
   const handleSendMessage = useCallback(async (content: string, files?: AttachedFile[]) => {
     let conversationId = activeConversationId;
 
-    // Create conversation if none exists
     if (!conversationId) {
       conversationId = await createConversation(content.slice(0, 50));
       if (!conversationId) return;
       setActiveConversationId(conversationId);
     } else {
-      // Update title if it's the first user message
       const currentMsgs = messages.filter(m => m.role === 'user');
       if (currentMsgs.length === 0) {
         await updateConversationTitle(conversationId, content.slice(0, 50));
       }
     }
 
-    // Build display content with file names
     const displayContent = files && files.length > 0
       ? `${content}\n\n📎 ${files.map(f => f.file.name).join(', ')}`
       : content;
 
-    // Save user message
     await saveMessage(conversationId, 'user', displayContent);
-
-    // Send to AI and get response
     await sendMessage(content, files);
   }, [activeConversationId, createConversation, saveMessage, sendMessage, messages, updateConversationTitle]);
 
-  // Save assistant message after streaming completes
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
     if (
@@ -155,7 +147,7 @@ const VivixChat = () => {
       lastMessage?.role === 'assistant' &&
       lastMessage.content &&
       !isLoading &&
-      lastMessage.id !== '1' // Skip initial message
+      lastMessage.id !== '1'
     ) {
       saveMessage(activeConversationId, 'assistant', lastMessage.content);
     }
@@ -176,10 +168,8 @@ const VivixChat = () => {
 
   return (
     <div className="flex h-full">
-      {/* Desktop Sidebar */}
       {!isMobile && desktopSidebarOpen && SidebarContent}
 
-      {/* Main Chat Area */}
       <div className="flex flex-col flex-1 max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex-shrink-0 py-6 px-4">
@@ -219,7 +209,7 @@ const VivixChat = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-glow bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                  Vivix
+                  Uvix
                 </h1>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />
@@ -286,7 +276,7 @@ const VivixChat = () => {
         <div className="flex-shrink-0 p-4 pt-2">
           <ChatInput onSend={handleSendMessage} disabled={isLoading} />
           <p className="text-center text-xs text-muted-foreground mt-3">
-            Vivix may occasionally make mistakes. Verify important information.
+            Uvix may occasionally make mistakes. Verify important information.
           </p>
         </div>
       </div>

@@ -185,7 +185,7 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask Vivix anything..."
+              placeholder="Ask Uvix anything..."
               disabled={disabled}
               rows={1}
               className={cn(

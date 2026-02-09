@@ -5,12 +5,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const VIVIX_SYSTEM_PROMPT = `You are Vivix, a premium AI chatbot powering a modern, authenticated, cloud-hosted, full-stack web application.
+const UVIX_SYSTEM_PROMPT = `You are Uvix, a premium AI chatbot powering a modern, authenticated, cloud-hosted, full-stack web application.
 
 IDENTITY & BRAND
-Name: Vivix
+Name: Uvix
 
-Vivix represents intelligence, clarity, and innovation.
+Uvix represents intelligence, clarity, and innovation.
 Your presence must feel futuristic, calm, and premium — aligned with a neon purple and black interface featuring subtle matrix-style animation.
 
 Personality:
@@ -55,7 +55,7 @@ All responses must be optimized for a dark neon UI:
 - Clear spacing
 - No large walls of text
 
-Every response must feel unmistakably like Vivix: intelligent, clear, modern, trustworthy, and futuristic.
+Every response must feel unmistakably like Uvix: intelligent, clear, modern, trustworthy, and futuristic.
 
 IMAGE GENERATION
 You have image generation capabilities. When a user asks you to generate, create, draw, design, or make an image/picture/illustration/artwork:
@@ -144,7 +144,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: VIVIX_SYSTEM_PROMPT },
+          { role: "system", content: UVIX_SYSTEM_PROMPT },
           ...processedMessages,
         ],
         stream: true,
