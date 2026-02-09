@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Plus, Trash2, MoreVertical, Pencil, Check, X } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { MessageSquare, Plus, Trash2, MoreVertical, Pencil, Check, X, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,6 +49,7 @@ const ConversationSidebar = ({
   const [deleteAllOpen, setDeleteAllOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -57,6 +58,12 @@ const ConversationSidebar = ({
       inputRef.current.select();
     }
   }, [editingId]);
+
+  const filteredConversations = useMemo(() => {
+    if (!searchQuery.trim()) return conversations;
+    const q = searchQuery.toLowerCase();
+    return conversations.filter(c => c.title.toLowerCase().includes(q));
+  }, [conversations, searchQuery]);
 
   const handleDelete = () => {
     if (deleteId) {
@@ -87,11 +94,8 @@ const ConversationSidebar = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSaveRename();
-    } else if (e.key === 'Escape') {
-      handleCancelRename();
-    }
+    if (e.key === 'Enter') handleSaveRename();
+    else if (e.key === 'Escape') handleCancelRename();
   };
 
   return (
@@ -100,14 +104,22 @@ const ConversationSidebar = ({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="font-semibold text-sm text-foreground">Conversations</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onNew}
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
-          >
+          <Button variant="ghost" size="icon" onClick={onNew} className="h-8 w-8 text-muted-foreground hover:text-foreground">
             <Plus className="h-4 w-4" />
           </Button>
+        </div>
+
+        {/* Search */}
+        <div className="px-3 pt-3 pb-1">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search conversations..."
+              className="h-8 pl-8 text-xs bg-secondary/50 border-border"
+            />
+          </div>
         </div>
 
         {/* Conversation List */}
@@ -120,16 +132,18 @@ const ConversationSidebar = ({
                   <Skeleton className="h-3 w-20" />
                 </div>
               ))
-            ) : conversations.length === 0 ? (
+            ) : filteredConversations.length === 0 ? (
               <div className="px-3 py-8 text-center">
                 <MessageSquare className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
-                <p className="text-sm text-muted-foreground">No conversations yet</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">
-                  Start a new chat to begin
+                <p className="text-sm text-muted-foreground">
+                  {searchQuery ? 'No matching conversations' : 'No conversations yet'}
                 </p>
+                {!searchQuery && (
+                  <p className="text-xs text-muted-foreground/70 mt-1">Start a new chat to begin</p>
+                )}
               </div>
             ) : (
-              conversations.map((conversation) => (
+              filteredConversations.map((conversation) => (
                 <div
                   key={conversation.id}
                   className={cn(
@@ -151,29 +165,17 @@ const ConversationSidebar = ({
                         onKeyDown={handleKeyDown}
                         className="h-7 text-sm py-0 px-2"
                       />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={handleSaveRename}
-                      >
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleSaveRename}>
                         <Check className="h-3 w-3 text-primary" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={handleCancelRename}
-                      >
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCancelRename}>
                         <X className="h-3 w-3 text-muted-foreground" />
                       </Button>
                     </div>
                   ) : (
                     <>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate text-foreground">
-                          {conversation.title}
-                        </p>
+                        <p className="text-sm font-medium truncate text-foreground">{conversation.title}</p>
                         <p className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(conversation.updated_at), { addSuffix: true })}
                         </p>
@@ -181,12 +183,7 @@ const ConversationSidebar = ({
                       
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                          <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                             <MoreVertical className="h-3 w-3" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -195,13 +192,7 @@ const ConversationSidebar = ({
                             <Pencil className="h-4 w-4 mr-2" />
                             Rename
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteId(conversation.id);
-                            }}
-                          >
+                          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteId(conversation.id); }}>
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete
                           </DropdownMenuItem>
@@ -236,18 +227,11 @@ const ConversationSidebar = ({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete conversation?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this conversation and all its messages.
-            </AlertDialogDescription>
+            <AlertDialogDescription>This will permanently delete this conversation and all its messages.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -257,21 +241,11 @@ const ConversationSidebar = ({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete all conversations?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete all conversations and messages. This cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogDescription>This will permanently delete all conversations and messages. This cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                onDeleteAll();
-                setDeleteAllOpen(false);
-              }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete all
-            </AlertDialogAction>
+            <AlertDialogAction onClick={() => { onDeleteAll(); setDeleteAllOpen(false); }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete all</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
