@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bot, Sparkles, LogOut, Menu, User, PanelLeftClose, PanelLeft, Send } from 'lucide-react';
+import { Bot, LogOut, Menu, User, PanelLeftClose, PanelLeft } from 'lucide-react';
 import type { AttachedFile } from './FilePreview';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -25,9 +25,15 @@ import { supabase } from '@/integrations/supabase/client';
 const INITIAL_MESSAGE: Message = {
   id: '1',
   role: 'assistant',
-  content: "How can I assist you today?",
+  content: "Hi, I'm Uvix.\n\nI'm here to help answer questions, explain things clearly, or guide visitors through your site.\n\nIf you want to test how I respond, try asking something simple.",
   created_at: new Date().toISOString(),
 };
+
+const STARTER_PROMPTS = [
+  "What does this product do?",
+  "How can someone get started?",
+  "Where can I find pricing or contact details?",
+];
 
 const VivixChat = () => {
   const navigate = useNavigate();
@@ -153,6 +159,8 @@ const VivixChat = () => {
     }
   }, [isLoading, messages, activeConversationId, saveMessage]);
 
+  const showStarterPrompts = messages.length === 1 && messages[0].id === '1';
+
   const SidebarContent = (
     <ConversationSidebar
       conversations={conversations}
@@ -201,19 +209,29 @@ const VivixChat = () => {
                 </Button>
               )}
               
+              {/* Glowing Orb Avatar */}
               <div className="relative">
-                <div className="absolute inset-0 bg-primary/40 rounded-full blur-xl animate-pulse" />
-                <div className="relative w-12 h-12 rounded-full flex items-center justify-center animate-glow-pulse" style={{ background: 'var(--gradient-neon)' }}>
-                  <Bot className="w-6 h-6 text-primary-foreground" />
+                <div className="absolute inset-0 rounded-full animate-glow-pulse" style={{
+                  background: 'radial-gradient(circle, hsl(187 85% 53% / 0.3), hsl(263 70% 58% / 0.2), transparent)',
+                  filter: 'blur(12px)',
+                  transform: 'scale(1.6)',
+                }} />
+                <div
+                  className="relative w-12 h-12 rounded-full flex items-center justify-center transition-transform duration-200 hover:scale-105"
+                  style={{
+                    background: 'radial-gradient(circle at 30% 30%, #A78BFA, #7C3AED, #4C1D95)',
+                    boxShadow: '0 0 20px hsl(263 70% 58% / 0.4), 0 0 40px hsl(187 85% 53% / 0.15)',
+                  }}
+                >
+                  <Bot className="w-6 h-6 text-white" />
                 </div>
               </div>
               <div>
-                <h1 className="text-2xl font-bold font-heading gradient-text">
+                <h1 className="text-xl font-semibold font-heading text-foreground">
                   Uvix
                 </h1>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-accent" />
-                  Premium AI Assistant
+                <p className="text-xs text-muted-foreground">
+                  Your website assistant for everyday questions
                 </p>
               </div>
             </div>
@@ -271,6 +289,24 @@ const VivixChat = () => {
           
           <div ref={messagesEndRef} />
         </div>
+
+        {/* Starter Prompts */}
+        {showStarterPrompts && (
+          <div className="flex-shrink-0 px-4 pb-2">
+            <div className="flex flex-wrap gap-2 justify-center">
+              {STARTER_PROMPTS.map((prompt) => (
+                <button
+                  key={prompt}
+                  onClick={() => handleSendMessage(prompt)}
+                  disabled={isLoading}
+                  className="text-xs px-3 py-2 rounded-lg border border-border bg-secondary/50 text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-secondary transition-colors disabled:opacity-50"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Input Area */}
         <div className="flex-shrink-0 p-4 pt-2">
