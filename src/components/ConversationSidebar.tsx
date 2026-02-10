@@ -136,11 +136,8 @@ const ConversationSidebar = ({
               <div className="px-3 py-8 text-center">
                 <MessageSquare className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
                 <p className="text-sm text-muted-foreground">
-                  {searchQuery ? 'No matching conversations' : 'No conversations yet'}
+                  {searchQuery ? 'No matching conversations' : 'Start a conversation to see how Uvix responds.'}
                 </p>
-                {!searchQuery && (
-                  <p className="text-xs text-muted-foreground/70 mt-1">Start a new chat to begin</p>
-                )}
               </div>
             ) : (
               filteredConversations.map((conversation) => (
