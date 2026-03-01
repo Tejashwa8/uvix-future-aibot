@@ -38,7 +38,7 @@ const Landing = () => {
           variant="ghost"
           className="text-muted-foreground hover:text-foreground"
         >
-          Sign in
+          Log in
         </Button>
       </nav>
 
