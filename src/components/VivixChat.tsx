@@ -25,7 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 const INITIAL_MESSAGE: Message = {
   id: '1',
   role: 'assistant',
-  content: "Hi, I'm Uvix.\n\nI'm here to help answer questions, explain things clearly, or guide visitors through your site.\n\nIf you want to test how I respond, try asking something simple.",
+  content: "Hi, I'm Uvix.\n\nI can help answer questions, explain things clearly, or guide visitors through your site.\n\nAsk something simple to get started.",
   created_at: new Date().toISOString(),
 };
 
@@ -230,8 +230,8 @@ const VivixChat = () => {
                 <h1 className="text-xl font-semibold font-heading text-foreground">
                   Uvix
                 </h1>
-                <p className="text-xs text-muted-foreground">
-                  Your website assistant for everyday questions
+              <p className="text-xs text-muted-foreground">
+                  Your website assistant
                 </p>
               </div>
             </div>
@@ -311,9 +311,6 @@ const VivixChat = () => {
         {/* Input Area */}
         <div className="flex-shrink-0 p-4 pt-2">
           <ChatInput onSend={handleSendMessage} disabled={isLoading} />
-          <p className="text-center text-xs text-muted-foreground mt-3">
-            Uvix may occasionally make mistakes. Verify important information.
-          </p>
         </div>
       </div>
     </div>

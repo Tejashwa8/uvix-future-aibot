@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
+import FloatingOrb from '@/components/FloatingOrb';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
@@ -158,6 +159,9 @@ const Auth = () => {
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>
+
+      {/* Floating Orb */}
+      <FloatingOrb />
     </div>
   );
 };
