@@ -143,14 +143,14 @@ const Auth = () => {
             </div>
 
             <Button type="submit" disabled={isLoading} className="w-full hover:opacity-90 box-glow text-primary-foreground" style={{ background: 'var(--gradient-neon)' }}>
-              {isLoading ? <Sparkles className="w-4 h-4 animate-pulse" /> : isLogin ? 'Sign In' : 'Create Account'}
+              {isLoading ? <Sparkles className="w-4 h-4 animate-pulse" /> : isLogin ? 'Log In' : 'Create Account'}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <button type="button" onClick={() => { setIsLogin(!isLogin); setErrors({}); }} className="text-sm text-muted-foreground hover:text-accent transition-colors">
               {isLogin ? "Don't have an account? " : 'Already have an account? '}
-              <span className="text-accent font-medium">{isLogin ? 'Sign up' : 'Sign in'}</span>
+              <span className="text-accent font-medium">{isLogin ? 'Sign up' : 'Log in'}</span>
             </button>
           </div>
         </div>
