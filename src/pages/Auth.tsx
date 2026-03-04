@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
-import FloatingOrb from '@/components/FloatingOrb';
+import UvixBotLogo from '@/components/UvixBotLogo';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
@@ -91,11 +91,15 @@ const Auth = () => {
 
       <div className="relative z-10 w-full max-w-md animate-fade-in">
         {/* Logo */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold tracking-widest mb-2" style={{ fontFamily: "'Orbitron', sans-serif", color: '#ffffff' }}>
+        <div className="text-center mb-10 flex flex-col items-center">
+          <UvixBotLogo size={48} className="mb-4" />
+          <h1 className="text-[22px] font-black tracking-[6px] mb-1" style={{ fontFamily: "'Orbitron', sans-serif", color: '#f0f0f0' }}>
             UVIX
           </h1>
-          <p className="text-sm tracking-wide" style={{ color: '#9ca3af' }}>
+          <p className="text-[8px] font-semibold tracking-[4px] uppercase" style={{ fontFamily: "'Orbitron', sans-serif", color: '#a855f7' }}>
+            AI Platform
+          </p>
+          <p className="text-sm tracking-wide mt-3" style={{ color: '#9ca3af' }}>
             {isLogin ? 'Welcome back to UVIX AI' : 'Create your UVIX account'}
           </p>
         </div>
@@ -103,20 +107,13 @@ const Auth = () => {
         {/* Card */}
         <div className="rounded-2xl p-8 border" style={{ background: '#141414', borderColor: '#262626' }}>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Display Name (signup only) */}
             {!isLogin && (
               <div>
                 <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
+                  type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Display name"
                   className="w-full px-4 py-3 rounded-lg border outline-none transition-colors text-sm"
-                  style={{
-                    background: '#0a0a0a',
-                    color: '#ffffff',
-                    borderColor: errors.name ? '#ef4444' : '#333333',
-                  }}
+                  style={{ background: '#0a0a0a', color: '#ffffff', borderColor: errors.name ? '#ef4444' : '#333333' }}
                   onFocus={(e) => { if (!errors.name) e.currentTarget.style.borderColor = '#7C3AED'; }}
                   onBlur={(e) => { if (!errors.name) e.currentTarget.style.borderColor = '#333333'; }}
                 />
@@ -124,134 +121,91 @@ const Auth = () => {
               </div>
             )}
 
-            {/* Email */}
             <div>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email address"
                 className="w-full px-4 py-3 rounded-lg border outline-none transition-colors text-sm"
-                style={{
-                  background: '#0a0a0a',
-                  color: '#ffffff',
-                  borderColor: errors.email ? '#ef4444' : '#333333',
-                }}
+                style={{ background: '#0a0a0a', color: '#ffffff', borderColor: errors.email ? '#ef4444' : '#333333' }}
                 onFocus={(e) => { if (!errors.email) e.currentTarget.style.borderColor = '#7C3AED'; }}
                 onBlur={(e) => { if (!errors.email) e.currentTarget.style.borderColor = '#333333'; }}
               />
               {errors.email && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.email}</p>}
             </div>
 
-            {/* Password */}
             <div>
               <div className="relative">
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
                   className="w-full px-4 py-3 pr-12 rounded-lg border outline-none transition-colors text-sm"
-                  style={{
-                    background: '#0a0a0a',
-                    color: '#ffffff',
-                    borderColor: errors.password ? '#ef4444' : '#333333',
-                  }}
+                  style={{ background: '#0a0a0a', color: '#ffffff', borderColor: errors.password ? '#ef4444' : '#333333' }}
                   onFocus={(e) => { if (!errors.password) e.currentTarget.style.borderColor = '#7C3AED'; }}
                   onBlur={(e) => { if (!errors.password) e.currentTarget.style.borderColor = '#333333'; }}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                  style={{ color: '#6b7280' }}
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors" style={{ color: '#6b7280' }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = '#ffffff'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = '#6b7280'; }}
-                >
+                  onMouseLeave={(e) => { e.currentTarget.style.color = '#6b7280'; }}>
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
               {errors.password && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.password}</p>}
             </div>
 
-            {/* Forgot password */}
             {isLogin && (
               <div className="text-right">
-                <Link
-                  to="/forgot-password"
-                  className="text-xs transition-colors"
-                  style={{ color: '#7C3AED' }}
+                <Link to="/forgot-password" className="text-xs transition-colors" style={{ color: '#7C3AED' }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = '#a78bfa'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = '#7C3AED'; }}
-                >
+                  onMouseLeave={(e) => { e.currentTarget.style.color = '#7C3AED'; }}>
                   Forgot password?
                 </Link>
               </div>
             )}
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={isLoading}
+            <button type="submit" disabled={isLoading}
               className="w-full py-3 rounded-lg font-semibold text-sm tracking-wide transition-all duration-200 disabled:opacity-50"
-              style={{
-                background: '#7C3AED',
-                color: '#ffffff',
-              }}
+              style={{ background: '#7C3AED', color: '#ffffff' }}
               onMouseEnter={(e) => { if (!isLoading) e.currentTarget.style.background = '#6D28D9'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = '#7C3AED'; }}
-            >
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#7C3AED'; }}>
               {isLoading ? 'Please wait...' : isLogin ? 'Log In' : 'Create Account'}
             </button>
           </form>
 
-          {/* Divider */}
           <div className="flex items-center my-6">
             <div className="flex-1 h-px" style={{ background: '#262626' }} />
             <span className="px-4 text-xs" style={{ color: '#6b7280' }}>OR</span>
             <div className="flex-1 h-px" style={{ background: '#262626' }} />
           </div>
 
-          {/* Social Login */}
           <div className="space-y-3">
-            <button
-              onClick={() => handleSocialLogin('google')}
+            <button onClick={() => handleSocialLogin('google')}
               className="w-full py-3 rounded-lg border text-sm font-medium transition-colors duration-200"
               style={{ background: 'transparent', borderColor: '#333333', color: '#d1d5db' }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#7C3AED'; e.currentTarget.style.color = '#ffffff'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#333333'; e.currentTarget.style.color = '#d1d5db'; }}
-            >
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#333333'; e.currentTarget.style.color = '#d1d5db'; }}>
               Continue with Google
             </button>
-            <button
-              onClick={() => handleSocialLogin('github')}
+            <button onClick={() => handleSocialLogin('github')}
               className="w-full py-3 rounded-lg border text-sm font-medium transition-colors duration-200"
               style={{ background: 'transparent', borderColor: '#333333', color: '#d1d5db' }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#7C3AED'; e.currentTarget.style.color = '#ffffff'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#333333'; e.currentTarget.style.color = '#d1d5db'; }}
-            >
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#333333'; e.currentTarget.style.color = '#d1d5db'; }}>
               Continue with GitHub
             </button>
           </div>
 
-          {/* Toggle */}
           <p className="text-center mt-6 text-sm" style={{ color: '#9ca3af' }}>
             {isLogin ? "Don't have an account? " : 'Already have an account? '}
-            <button
-              type="button"
-              onClick={() => { setIsLogin(!isLogin); setErrors({}); }}
-              className="font-medium transition-colors"
-              style={{ color: '#7C3AED' }}
+            <button type="button" onClick={() => { setIsLogin(!isLogin); setErrors({}); }}
+              className="font-medium transition-colors" style={{ color: '#7C3AED' }}
               onMouseEnter={(e) => { e.currentTarget.style.color = '#a78bfa'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = '#7C3AED'; }}
-            >
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#7C3AED'; }}>
               {isLogin ? 'Sign up' : 'Log in'}
             </button>
           </p>
         </div>
       </div>
-
-      <FloatingOrb />
     </div>
   );
 };
