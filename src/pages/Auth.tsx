@@ -1,10 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Bot, Sparkles, Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import FloatingOrb from '@/components/FloatingOrb';
@@ -55,7 +52,7 @@ const Auth = () => {
           }
           return;
         }
-        toast({ title: 'Welcome back!', description: 'You have successfully signed in.' });
+        toast({ title: 'Welcome back!', description: 'You have successfully logged in.' });
         navigate('/');
       } else {
         const { error } = await supabase.auth.signUp({
@@ -77,90 +74,183 @@ const Auth = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Ambient effects */}
-      <div className="fixed top-0 left-1/4 w-96 h-96 bg-primary/15 rounded-full blur-[150px]" />
-      <div className="fixed bottom-0 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-[120px]" />
+  const handleSocialLogin = async (provider: 'google' | 'github') => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/` },
+    });
+    if (error) {
+      toast({ variant: 'destructive', title: 'Login failed', description: error.message });
+    }
+  };
 
-      <div className="relative z-10 w-full max-w-md">
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ background: '#0a0a0a' }}>
+      {/* Subtle ambient glow */}
+      <div className="fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[200px] opacity-20" style={{ background: '#7C3AED' }} />
+
+      <div className="relative z-10 w-full max-w-md animate-fade-in">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/40 rounded-full blur-xl animate-pulse" />
-            <div className="relative w-14 h-14 rounded-full flex items-center justify-center animate-glow-pulse" style={{ background: 'var(--gradient-neon)' }}>
-              <Bot className="w-7 h-7 text-primary-foreground" />
-            </div>
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-heading gradient-text">
-              Uvix
-            </h1>
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-accent" />
-              Premium AI Assistant
-            </p>
-          </div>
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold tracking-widest mb-2" style={{ fontFamily: "'Orbitron', sans-serif", color: '#ffffff' }}>
+            UVIX
+          </h1>
+          <p className="text-sm tracking-wide" style={{ color: '#9ca3af' }}>
+            {isLogin ? 'Welcome back to UVIX AI' : 'Create your UVIX account'}
+          </p>
         </div>
 
-        {/* Auth Card */}
-        <div className="glass-panel neon-border rounded-2xl p-8">
-          <h2 className="text-xl font-semibold text-center mb-6 font-heading">
-            {isLogin ? 'Welcome' : 'Create Account'}
-          </h2>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Card */}
+        <div className="rounded-2xl p-8 border" style={{ background: '#141414', borderColor: '#262626' }}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Display Name (signup only) */}
             {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm text-muted-foreground">Display Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input id="name" type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="pl-10 bg-input border-border focus:border-accent" />
-                </div>
-                {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+              <div>
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Display name"
+                  className="w-full px-4 py-3 rounded-lg border outline-none transition-colors text-sm"
+                  style={{
+                    background: '#0a0a0a',
+                    color: '#ffffff',
+                    borderColor: errors.name ? '#ef4444' : '#333333',
+                  }}
+                  onFocus={(e) => { if (!errors.name) e.currentTarget.style.borderColor = '#7C3AED'; }}
+                  onBlur={(e) => { if (!errors.name) e.currentTarget.style.borderColor = '#333333'; }}
+                />
+                {errors.name && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.name}</p>}
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm text-muted-foreground">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="pl-10 bg-input border-border focus:border-accent" />
-              </div>
-              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+            {/* Email */}
+            <div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email address"
+                className="w-full px-4 py-3 rounded-lg border outline-none transition-colors text-sm"
+                style={{
+                  background: '#0a0a0a',
+                  color: '#ffffff',
+                  borderColor: errors.email ? '#ef4444' : '#333333',
+                }}
+                onFocus={(e) => { if (!errors.email) e.currentTarget.style.borderColor = '#7C3AED'; }}
+                onBlur={(e) => { if (!errors.email) e.currentTarget.style.borderColor = '#333333'; }}
+              />
+              {errors.email && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.email}</p>}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm text-muted-foreground">Password</Label>
+            {/* Password */}
+            <div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pl-10 pr-10 bg-input border-border focus:border-accent" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  className="w-full px-4 py-3 pr-12 rounded-lg border outline-none transition-colors text-sm"
+                  style={{
+                    background: '#0a0a0a',
+                    color: '#ffffff',
+                    borderColor: errors.password ? '#ef4444' : '#333333',
+                  }}
+                  onFocus={(e) => { if (!errors.password) e.currentTarget.style.borderColor = '#7C3AED'; }}
+                  onBlur={(e) => { if (!errors.password) e.currentTarget.style.borderColor = '#333333'; }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                  style={{ color: '#6b7280' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = '#ffffff'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = '#6b7280'; }}
+                >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+              {errors.password && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.password}</p>}
             </div>
 
-            <Button type="submit" disabled={isLoading} className="w-full hover:opacity-90 box-glow text-primary-foreground" style={{ background: 'var(--gradient-neon)' }}>
-              {isLoading ? <Sparkles className="w-4 h-4 animate-pulse" /> : isLogin ? 'Log In' : 'Create Account'}
-            </Button>
+            {/* Forgot password */}
+            {isLogin && (
+              <div className="text-right">
+                <Link
+                  to="/forgot-password"
+                  className="text-xs transition-colors"
+                  style={{ color: '#7C3AED' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = '#a78bfa'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = '#7C3AED'; }}
+                >
+                  Forgot password?
+                </Link>
+              </div>
+            )}
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 rounded-lg font-semibold text-sm tracking-wide transition-all duration-200 disabled:opacity-50"
+              style={{
+                background: '#7C3AED',
+                color: '#ffffff',
+              }}
+              onMouseEnter={(e) => { if (!isLoading) e.currentTarget.style.background = '#6D28D9'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#7C3AED'; }}
+            >
+              {isLoading ? 'Please wait...' : isLogin ? 'Log In' : 'Create Account'}
+            </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <button type="button" onClick={() => { setIsLogin(!isLogin); setErrors({}); }} className="text-sm text-muted-foreground hover:text-accent transition-colors">
-              {isLogin ? "Don't have an account? " : 'Already have an account? '}
-              <span className="text-accent font-medium">{isLogin ? 'Sign up' : 'Log in'}</span>
+          {/* Divider */}
+          <div className="flex items-center my-6">
+            <div className="flex-1 h-px" style={{ background: '#262626' }} />
+            <span className="px-4 text-xs" style={{ color: '#6b7280' }}>OR</span>
+            <div className="flex-1 h-px" style={{ background: '#262626' }} />
+          </div>
+
+          {/* Social Login */}
+          <div className="space-y-3">
+            <button
+              onClick={() => handleSocialLogin('google')}
+              className="w-full py-3 rounded-lg border text-sm font-medium transition-colors duration-200"
+              style={{ background: 'transparent', borderColor: '#333333', color: '#d1d5db' }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#7C3AED'; e.currentTarget.style.color = '#ffffff'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#333333'; e.currentTarget.style.color = '#d1d5db'; }}
+            >
+              Continue with Google
+            </button>
+            <button
+              onClick={() => handleSocialLogin('github')}
+              className="w-full py-3 rounded-lg border text-sm font-medium transition-colors duration-200"
+              style={{ background: 'transparent', borderColor: '#333333', color: '#d1d5db' }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#7C3AED'; e.currentTarget.style.color = '#ffffff'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#333333'; e.currentTarget.style.color = '#d1d5db'; }}
+            >
+              Continue with GitHub
             </button>
           </div>
-        </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          By continuing, you agree to our Terms of Service and Privacy Policy.
-        </p>
+          {/* Toggle */}
+          <p className="text-center mt-6 text-sm" style={{ color: '#9ca3af' }}>
+            {isLogin ? "Don't have an account? " : 'Already have an account? '}
+            <button
+              type="button"
+              onClick={() => { setIsLogin(!isLogin); setErrors({}); }}
+              className="font-medium transition-colors"
+              style={{ color: '#7C3AED' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#a78bfa'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#7C3AED'; }}
+            >
+              {isLogin ? 'Sign up' : 'Log in'}
+            </button>
+          </p>
+        </div>
       </div>
 
-      {/* Floating Orb */}
       <FloatingOrb />
     </div>
   );
