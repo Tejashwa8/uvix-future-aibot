@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Navbar from '@/components/landing/Navbar';
 import HeroSection from '@/components/landing/HeroSection';
 import FeaturesSection from '@/components/landing/FeaturesSection';
+import HowItWorksSection from '@/components/landing/HowItWorksSection';
 import CapabilitiesSection from '@/components/landing/CapabilitiesSection';
 import SocialProofSection from '@/components/landing/SocialProofSection';
 import CTASection from '@/components/landing/CTASection';
@@ -22,6 +23,7 @@ const Landing = () => {
       <Navbar />
       <HeroSection />
       <FeaturesSection />
+      <HowItWorksSection />
       <CapabilitiesSection />
       <SocialProofSection />
       <CTASection />

@@ -1,60 +1,47 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
-const stagger = { visible: { transition: { staggerChildren: 0.1 } } };
 
 const CTASection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="py-24" style={{ background: '#121212' }}>
-      <div className="max-w-3xl mx-auto px-6">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-          variants={stagger}
-          className="relative rounded-[18px] p-16 text-center border overflow-hidden"
-          style={{ background: '#161616', borderColor: '#222' }}
-        >
+    <section style={{ background: '#121212', padding: '100px 6%' }}>
+      <div style={{ maxWidth: 660, margin: '0 auto' }}>
+        <div className="relative rounded-[18px] text-center overflow-hidden" style={{ background: '#161616', border: '1px solid #222', padding: '64px 40px' }}>
           {/* Glow */}
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ background: 'radial-gradient(circle at 50% 50%, rgba(168,85,247,0.08), transparent 70%)' }} />
+          <div className="absolute pointer-events-none" style={{ width: 400, height: 200, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'radial-gradient(ellipse, rgba(168,85,247,0.1), transparent 70%)' }} />
 
-          <motion.p variants={fadeUp} className="text-[11px] font-bold tracking-[4px] mb-3 relative z-10"
-            style={{ color: '#a855f7', fontFamily: "'Orbitron', sans-serif" }}>
+          <p className="font-bold tracking-[4px] mb-3 relative z-10" style={{ fontSize: 11, color: '#a855f7', fontFamily: "'Orbitron', sans-serif" }}>
             GET STARTED
-          </motion.p>
-
-          <motion.h2 variants={fadeUp} className="text-2xl md:text-3xl font-bold mb-4 relative z-10"
-            style={{ fontFamily: "'Orbitron', sans-serif", color: '#f0f0f0' }}>
-            Ready to experience{' '}
-            <span className="gradient-text">UVIX AI</span>?
-          </motion.h2>
-
-          <motion.p variants={fadeUp} className="text-sm mb-8 relative z-10" style={{ color: '#888' }}>
+          </p>
+          <h2 className="font-bold mb-4 relative z-10" style={{ fontSize: 'clamp(20px, 3vw, 30px)', fontFamily: "'Orbitron', sans-serif", color: '#f0f0f0' }}>
+            Ready to experience <span className="gradient-text">UVIX AI</span>?
+          </h2>
+          <p className="text-[14px] mb-8 relative z-10 mx-auto" style={{ color: '#4a4a4a', maxWidth: 380, fontFamily: "'Space Grotesk', sans-serif" }}>
             Join thousands of developers and researchers already building with UVIX.
-          </motion.p>
+          </p>
 
-          <motion.div variants={fadeUp} className="flex items-center justify-center gap-3 relative z-10">
-            <Button onClick={() => navigate('/auth')} className="bg-primary text-primary-foreground hover:bg-primary/90 px-6">
-              Get Started <ArrowRight className="w-4 h-4 ml-1.5" />
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/auth')} className="border-border text-muted-foreground hover:text-foreground">
+          <div className="flex items-center justify-center gap-3 relative z-10">
+            <button onClick={() => navigate('/auth')}
+              className="rounded-lg font-medium transition-colors"
+              style={{ background: '#a855f7', color: '#fff', padding: '14px 32px', fontSize: 14, fontFamily: "'Space Grotesk', sans-serif" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#9333ea'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#a855f7'; }}>
+              Get Started <ArrowRight className="w-4 h-4 ml-1.5 inline" />
+            </button>
+            <button onClick={() => navigate('/auth')}
+              className="rounded-lg font-medium border transition-colors"
+              style={{ background: 'transparent', borderColor: '#2a2a2a', color: '#888', padding: '14px 32px', fontSize: 14, fontFamily: "'Space Grotesk', sans-serif" }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.color = '#f0f0f0'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#888'; }}>
               Login
-            </Button>
-          </motion.div>
+            </button>
+          </div>
 
-          <motion.p variants={fadeUp} className="text-xs mt-6 relative z-10" style={{ color: '#555' }}>
+          <p className="text-[12px] mt-6 relative z-10" style={{ color: '#2e2e2e', fontFamily: "'Space Grotesk', sans-serif" }}>
             No credit card required · Free tier available
-          </motion.p>
-        </motion.div>
+          </p>
+        </div>
       </div>
     </section>
   );
