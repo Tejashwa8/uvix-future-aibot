@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import UvixBotLogo from '@/components/UvixBotLogo';
 
 const navLinks = [
   { label: 'Features', target: 'features' },
+  { label: 'How It Works', target: 'how-it-works' },
   { label: 'Capabilities', target: 'capabilities' },
-  { label: 'Pricing', target: 'pricing' },
 ];
 
 const Navbar = () => {
@@ -25,19 +24,17 @@ const Navbar = () => {
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50 h-[60px] flex items-center justify-between px-6 transition-all duration-300"
+      className="fixed top-0 left-0 right-0 z-50 h-[60px] flex items-center justify-between transition-all duration-300"
       style={{
+        padding: '0 6%',
         background: scrolled ? 'rgba(18,18,18,0.92)' : 'transparent',
         backdropFilter: scrolled ? 'blur(14px)' : 'none',
         borderBottom: scrolled ? '1px solid #1e1e1e' : '1px solid transparent',
       }}
     >
       <div className="flex items-center gap-2.5">
-        <UvixBotLogo size={28} />
-        <span
-          className="font-bold tracking-[4px] text-[14px]"
-          style={{ fontFamily: "'Orbitron', sans-serif", color: '#f0f0f0' }}
-        >
+        <UvixBotLogo size={30} showEars />
+        <span className="font-black tracking-[4px] text-[14px]" style={{ fontFamily: "'Orbitron', sans-serif", color: '#f0f0f0' }}>
           UVIX
         </span>
       </div>
@@ -47,7 +44,7 @@ const Navbar = () => {
           <button
             key={link.target}
             onClick={() => scrollTo(link.target)}
-            className="text-sm transition-colors duration-200"
+            className="text-[13px] transition-colors duration-200"
             style={{ color: '#888', fontFamily: "'Space Grotesk', sans-serif" }}
             onMouseEnter={(e) => { e.currentTarget.style.color = '#a855f7'; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = '#888'; }}
@@ -58,21 +55,24 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
           onClick={() => navigate('/auth')}
-          className="text-muted-foreground hover:text-foreground"
+          className="text-[13px] font-medium px-4 py-2 rounded-lg transition-colors"
+          style={{ color: '#888', fontFamily: "'Space Grotesk', sans-serif" }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#f0f0f0'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = '#888'; }}
         >
           Login
-        </Button>
-        <Button
-          size="sm"
+        </button>
+        <button
           onClick={() => navigate('/auth')}
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
+          className="text-[13px] font-medium rounded-lg transition-colors"
+          style={{ background: '#a855f7', color: '#fff', padding: '8px 18px', fontFamily: "'Space Grotesk', sans-serif" }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#9333ea'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = '#a855f7'; }}
         >
           Get Started
-        </Button>
+        </button>
       </div>
     </nav>
   );

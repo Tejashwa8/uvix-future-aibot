@@ -1,11 +1,4 @@
-import { motion } from 'framer-motion';
 import { useEffect, useState, useRef } from 'react';
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
-const stagger = { visible: { transition: { staggerChildren: 0.15 } } };
 
 const counters = [
   { target: 10000, suffix: '+', label: 'Users' },
@@ -42,15 +35,13 @@ const AnimatedCounter = ({ target, suffix, isDecimal }: { target: number; suffix
 
   return (
     <div ref={ref} className="text-center">
-      <div
-        className="font-black mb-2"
+      <div className="font-black mb-2"
         style={{
           fontFamily: "'Orbitron', sans-serif",
           fontSize: 'clamp(26px, 4vw, 44px)',
           color: '#f0f0f0',
           textShadow: '0 0 24px rgba(168,85,247,0.3)',
-        }}
-      >
+        }}>
         {display}{suffix}
       </div>
     </div>
@@ -58,25 +49,23 @@ const AnimatedCounter = ({ target, suffix, isDecimal }: { target: number; suffix
 };
 
 const SocialProofSection = () => (
-  <section className="py-24" style={{ background: '#0e0e0e' }}>
-    <div className="max-w-5xl mx-auto px-6">
-      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={stagger}>
-        <motion.p variants={fadeUp} className="text-[11px] font-bold tracking-[4px] mb-3 text-center" style={{ color: '#a855f7', fontFamily: "'Orbitron', sans-serif" }}>
-          TRUSTED WORLDWIDE
-        </motion.p>
-        <motion.h2 variants={fadeUp} className="text-2xl md:text-3xl font-bold mb-16 text-center" style={{ color: '#f0f0f0', fontFamily: "'Orbitron', sans-serif" }}>
-          Trusted by developers and researchers worldwide.
-        </motion.h2>
+  <section style={{ background: '#0e0e0e', padding: '100px 6%' }}>
+    <div style={{ maxWidth: 1060, margin: '0 auto' }}>
+      <p className="text-center font-bold tracking-[4px] mb-3" style={{ fontSize: 11, color: '#a855f7', fontFamily: "'Orbitron', sans-serif" }}>
+        TRUSTED WORLDWIDE
+      </p>
+      <h2 className="text-center font-bold mb-16" style={{ fontSize: 'clamp(20px, 3vw, 30px)', color: '#f0f0f0', fontFamily: "'Orbitron', sans-serif" }}>
+        Trusted by developers and researchers worldwide.
+      </h2>
 
-        <div className="grid grid-cols-3 gap-8">
-          {counters.map((c, i) => (
-            <motion.div key={i} variants={fadeUp}>
-              <AnimatedCounter target={c.target} suffix={c.suffix} isDecimal={c.isDecimal} />
-              <p className="text-center text-[13px] mt-2" style={{ color: '#555' }}>{c.label}</p>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
+      <div className="grid grid-cols-3 gap-8">
+        {counters.map((c, i) => (
+          <div key={i}>
+            <AnimatedCounter target={c.target} suffix={c.suffix} isDecimal={c.isDecimal} />
+            <p className="text-center text-[13px] mt-2" style={{ color: '#555', fontFamily: "'Space Grotesk', sans-serif" }}>{c.label}</p>
+          </div>
+        ))}
+      </div>
     </div>
   </section>
 );
