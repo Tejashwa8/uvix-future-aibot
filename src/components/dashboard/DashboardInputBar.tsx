@@ -69,7 +69,7 @@ const DashboardInputBar = ({ t, input, setInput, loading, sendMessage, inputRef 
     recognition.interimResults = false;
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
-      setInput(prev => (prev ? prev + ' ' + transcript : transcript));
+      setInput(input ? input + ' ' + transcript : transcript);
       if (inputRef.current) {
         inputRef.current.style.height = 'auto';
         inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px`;
