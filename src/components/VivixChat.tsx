@@ -1,318 +1,300 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bot, LogOut, Menu, User, PanelLeftClose, PanelLeft } from 'lucide-react';
-import type { AttachedFile } from './FilePreview';
-import ChatMessage from './ChatMessage';
-import ChatInput from './ChatInput';
-import ConversationSidebar from './ConversationSidebar';
-import { ThemeToggle } from './ThemeToggle';
-import { useStreamingChat } from '@/hooks/useStreamingChat';
-import { useConversations, Message } from '@/hooks/useConversations';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { supabase } from '@/integrations/supabase/client';
+import { useUvixTheme } from '@/hooks/useUvixTheme';
+import { useStreamingChat } from '@/hooks/useStreamingChat';
+import { useConversations } from '@/hooks/useConversations';
+import { LS } from '@/lib/storage';
+import { S } from '@/lib/sounds';
+import DashboardNavbar from './dashboard/DashboardNavbar';
+import DashboardSidebar, { ConvoItem } from './dashboard/DashboardSidebar';
+import DashboardInputBar, { Attachment } from './dashboard/DashboardInputBar';
+import MessageBubble from './dashboard/MessageBubble';
+import PreferencesPanel from './dashboard/PreferencesPanel';
+import UvixToast from './dashboard/UvixToast';
+import BotSVG from './dashboard/BotSVG';
+import type { AttachedFile } from './FilePreview';
 
-const INITIAL_MESSAGE: Message = {
-  id: '1',
-  role: 'assistant',
-  content: "Hi, I'm Uvix.\n\nI can help answer questions, explain things clearly, or guide visitors through your site.\n\nAsk something simple to get started.",
-  created_at: new Date().toISOString(),
-};
-
-const STARTER_PROMPTS = [
-  "What does this product do?",
-  "How can someone get started?",
-  "Where can I find pricing or contact details?",
+const SUGGESTION_CHIPS = [
+  { icon: '💻', text: 'Write a Python async function' },
+  { icon: '🔬', text: 'Explain RAG architecture' },
+  { icon: '✍️', text: 'Help improve my writing' },
+  { icon: '📄', text: 'Summarise a document' },
 ];
+
+interface LocalMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  time: string;
+  edited?: boolean;
+}
+
+const now = () => new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
 
 const VivixChat = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { themeName, setThemeName, t } = useUvixTheme();
   const {
-    conversations,
-    isLoading: conversationsLoading,
+    conversations: dbConversations,
     createConversation,
     deleteConversation,
     deleteAllConversations,
-    getMessages,
-    saveMessage,
+    getMessages: getDbMessages,
+    saveMessage: saveDbMessage,
     updateConversationTitle,
   } = useConversations();
-  
+
+  const { messages: streamMessages, isLoading, sendMessage: streamSend, setMessages: setStreamMessages } = useStreamingChat([]);
+
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [prefsOpen, setPrefsOpen] = useState(false);
+  const [input, setInput] = useState('');
+  const [toastMsg, setToastMsg] = useState('');
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const isMobile = useIsMobile();
+
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { messages, isLoading, sendMessage, setMessages } = useStreamingChat([INITIAL_MESSAGE]);
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  const userEmail = user?.email || '';
+  const initials = userName.slice(0, 2).toUpperCase();
+  const level = LS.get('uvix-level', 'intermediate');
 
-  // Load user profile
+  // Play login sound on mount
+  useEffect(() => { S.login(); }, []);
+
+  // Scroll to bottom on new messages
   useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) return;
-      const { data } = await supabase
-        .from('profiles')
-        .select('avatar_url')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      if (data?.avatar_url) {
-        setAvatarUrl(data.avatar_url);
-      }
-    };
-    loadProfile();
-  }, [user]);
-
-  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, [streamMessages]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // Convert stream messages to local format
+  const localMessages: LocalMessage[] = streamMessages.map(m => ({
+    id: m.id,
+    role: m.role,
+    text: m.content,
+    time: now(),
+  }));
 
-  const loadConversation = useCallback(async (conversationId: string) => {
-    const msgs = await getMessages(conversationId);
-    if (msgs.length > 0) {
-      setMessages(msgs.map(m => ({
-        id: m.id,
-        role: m.role,
-        content: m.content,
-      })));
-    } else {
-      setMessages([INITIAL_MESSAGE]);
-    }
-    setActiveConversationId(conversationId);
-    setSidebarOpen(false);
-  }, [getMessages, setMessages]);
+  // Convert db conversations to sidebar format
+  const sidebarConvos: ConvoItem[] = dbConversations.map(c => ({
+    id: parseInt(c.id, 16) || Date.now(), // fallback
+    title: c.title,
+    date: c.created_at,
+    messages: [],
+    _dbId: c.id,
+  })) as any;
 
-  const handleNewConversation = useCallback(async () => {
+  const showToast = (msg: string) => setToastMsg(msg);
+
+  const loadConversation = useCallback(async (sidebarId: number) => {
+    const convo = dbConversations.find((_, i) => (sidebarConvos[i] as any)?.id === sidebarId);
+    if (!convo) return;
+    const msgs = await getDbMessages(convo.id);
+    setStreamMessages(msgs.map(m => ({ id: m.id, role: m.role, content: m.content })));
+    setActiveConversationId(convo.id);
+  }, [dbConversations, sidebarConvos, getDbMessages, setStreamMessages]);
+
+  const handleNew = useCallback(async () => {
     const newId = await createConversation();
     if (newId) {
       setActiveConversationId(newId);
-      setMessages([INITIAL_MESSAGE]);
-      setSidebarOpen(false);
+      setStreamMessages([]);
     }
-  }, [createConversation, setMessages]);
+  }, [createConversation, setStreamMessages]);
 
-  const handleDeleteConversation = useCallback(async (id: string) => {
-    await deleteConversation(id);
-    if (activeConversationId === id) {
+  const handleDeleteConvo = useCallback(async (sidebarId: number) => {
+    const convo = dbConversations.find((_, i) => (sidebarConvos[i] as any)?.id === sidebarId);
+    if (!convo) return;
+    await deleteConversation(convo.id);
+    if (activeConversationId === convo.id) {
       setActiveConversationId(null);
-      setMessages([INITIAL_MESSAGE]);
+      setStreamMessages([]);
     }
-  }, [deleteConversation, activeConversationId, setMessages]);
+  }, [dbConversations, sidebarConvos, deleteConversation, activeConversationId, setStreamMessages]);
 
-  const handleDeleteAllConversations = useCallback(async () => {
+  const handleDeleteAll = useCallback(async () => {
     await deleteAllConversations();
     setActiveConversationId(null);
-    setMessages([INITIAL_MESSAGE]);
-  }, [deleteAllConversations, setMessages]);
+    setStreamMessages([]);
+  }, [deleteAllConversations, setStreamMessages]);
 
-  const handleRenameConversation = useCallback(async (id: string, title: string) => {
-    await updateConversationTitle(id, title);
-  }, [updateConversationTitle]);
+  const handleSendMessage = useCallback(async (attachments?: Attachment[]) => {
+    if ((!input.trim() && (!attachments || !attachments.length)) || isLoading) return;
+    S.send();
 
-  const handleSendMessage = useCallback(async (content: string, files?: AttachedFile[]) => {
     let conversationId = activeConversationId;
-
     if (!conversationId) {
-      conversationId = await createConversation(content.slice(0, 50));
+      conversationId = await createConversation(input.trim().slice(0, 50));
       if (!conversationId) return;
       setActiveConversationId(conversationId);
-    } else {
-      const currentMsgs = messages.filter(m => m.role === 'user');
-      if (currentMsgs.length === 0) {
-        await updateConversationTitle(conversationId, content.slice(0, 50));
-      }
+    } else if (streamMessages.length === 0) {
+      await updateConversationTitle(conversationId, input.trim().slice(0, 50));
     }
 
-    const displayContent = files && files.length > 0
-      ? `${content}\n\n📎 ${files.map(f => f.file.name).join(', ')}`
-      : content;
+    const userText = input.trim() + (attachments?.length ? '\n📎 ' + attachments.map(a => a.name).join(', ') : '');
+    await saveDbMessage(conversationId, 'user', userText);
 
-    await saveMessage(conversationId, 'user', displayContent);
-    await sendMessage(content, files);
-  }, [activeConversationId, createConversation, saveMessage, sendMessage, messages, updateConversationTitle]);
+    // Convert attachments to AttachedFile format for streaming
+    const files: AttachedFile[] | undefined = attachments?.map(a => ({ file: a.file }));
+    await streamSend(input.trim(), files);
+    setInput('');
+  }, [input, isLoading, activeConversationId, createConversation, streamMessages, updateConversationTitle, saveDbMessage, streamSend]);
 
+  // Save assistant messages to DB
   useEffect(() => {
-    const lastMessage = messages[messages.length - 1];
-    if (
-      activeConversationId &&
-      lastMessage?.role === 'assistant' &&
-      lastMessage.content &&
-      !isLoading &&
-      lastMessage.id !== '1'
-    ) {
-      saveMessage(activeConversationId, 'assistant', lastMessage.content);
+    const lastMsg = streamMessages[streamMessages.length - 1];
+    if (activeConversationId && lastMsg?.role === 'assistant' && lastMsg.content && !isLoading) {
+      saveDbMessage(activeConversationId, 'assistant', lastMsg.content);
     }
-  }, [isLoading, messages, activeConversationId, saveMessage]);
+  }, [isLoading]);
 
-  const showStarterPrompts = messages.length === 1 && messages[0].id === '1';
+  // Reply sound
+  useEffect(() => {
+    if (!isLoading && streamMessages.length > 0 && streamMessages[streamMessages.length - 1]?.role === 'assistant') {
+      S.reply();
+    }
+  }, [isLoading]);
 
-  const SidebarContent = (
-    <ConversationSidebar
-      conversations={conversations}
-      activeId={activeConversationId}
-      isLoading={conversationsLoading}
-      onSelect={loadConversation}
-      onNew={handleNewConversation}
-      onDelete={handleDeleteConversation}
-      onRename={handleRenameConversation}
-      onDeleteAll={handleDeleteAllConversations}
-    />
-  );
+  const handleEditMessage = (index: number, newText: string) => {
+    setStreamMessages(prev => prev.map((m, i) => i === index ? { ...m, content: newText } : m));
+  };
+
+  const handleDeleteMessage = (index: number) => {
+    setStreamMessages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const isEmpty = streamMessages.length === 0;
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/landing');
+  };
 
   return (
-    <div className="flex h-full">
-      {!isMobile && desktopSidebarOpen && SidebarContent}
+    <div className="flex flex-col h-screen" style={{ background: t.bg, color: t.text, transition: 'all .3s ease' }}>
+      <DashboardNavbar
+        t={t}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen(p => !p)}
+        initials={initials}
+        onAvatarClick={() => setPrefsOpen(true)}
+        onLogout={handleLogout}
+      />
 
-      <div className="flex flex-col flex-1 max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex-shrink-0 py-5 px-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {isMobile ? (
-                <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-                  <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="mr-2">
-                      <Menu className="h-5 w-5" />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="p-0 w-64">
-                    {SidebarContent}
-                  </SheetContent>
-                </Sheet>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="mr-2"
-                  onClick={() => setDesktopSidebarOpen((prev) => !prev)}
-                >
-                  {desktopSidebarOpen ? (
-                    <PanelLeftClose className="h-5 w-5" />
-                  ) : (
-                    <PanelLeft className="h-5 w-5" />
-                  )}
-                </Button>
-              )}
-              
-              {/* Glowing Orb Avatar */}
-              <div className="relative">
-                <div className="absolute inset-0 rounded-full animate-glow-pulse" style={{
-                  background: 'radial-gradient(circle, hsl(187 85% 53% / 0.3), hsl(263 70% 58% / 0.2), transparent)',
-                  filter: 'blur(12px)',
-                  transform: 'scale(1.6)',
-                }} />
-                <div
-                  className="relative w-12 h-12 rounded-full flex items-center justify-center transition-transform duration-200 hover:scale-105"
-                  style={{
-                    background: 'radial-gradient(circle at 30% 30%, #A78BFA, #7C3AED, #4C1D95)',
-                    boxShadow: '0 0 20px hsl(263 70% 58% / 0.4), 0 0 40px hsl(187 85% 53% / 0.15)',
-                  }}
-                >
-                  <Bot className="w-6 h-6 text-white" />
+      <div className="flex flex-1 overflow-hidden">
+        <DashboardSidebar
+          t={t}
+          open={sidebarOpen}
+          convos={sidebarConvos}
+          activeId={sidebarConvos.find(c => {
+            const convo = dbConversations.find(d => d.id === activeConversationId);
+            return convo && (c as any)._dbId === convo.id;
+          })?.id ?? null}
+          onSelect={loadConversation}
+          onNew={handleNew}
+          onDelete={handleDeleteConvo}
+          onDeleteAll={handleDeleteAll}
+          level={level}
+          userName={userName}
+          showToast={showToast}
+        />
+
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-6 py-5" style={{ scrollbarWidth: 'thin' }}>
+            {isEmpty ? (
+              <div className="flex flex-col items-center justify-center h-full" style={{ animation: 'fadeUp .6s ease' }}>
+                <BotSVG size={48} ears={false} />
+                <div style={{ fontFamily: 'Orbitron', fontWeight: 700, fontSize: 17, marginTop: 16, color: t.text }}>UVIX AI</div>
+                <div style={{ fontSize: 14, color: t.sub, marginTop: 6 }}>What can I help you with today?</div>
+
+                <div className="grid grid-cols-2 gap-2.5 mt-6" style={{ maxWidth: 440 }}>
+                  {SUGGESTION_CHIPS.map(chip => (
+                    <button
+                      key={chip.text}
+                      onClick={() => { setInput(chip.text); inputRef.current?.focus(); }}
+                      onMouseEnter={S.hover}
+                      className="flex items-center gap-2 px-3.5 py-3 rounded-lg text-left transition-colors"
+                      style={{ background: t.card, border: `1px solid ${t.border}`, fontSize: 13, color: t.sub }}
+                    >
+                      <span>{chip.icon}</span>
+                      <span>{chip.text}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ fontSize: 11, color: t.muted, marginTop: 20 }}>
+                  Powered by Claude · <span style={{ color: '#a855f7' }}>{level}</span>
                 </div>
               </div>
-              <div>
-                <h1 className="text-xl font-semibold font-heading text-foreground">
-                  Uvix
-                </h1>
-              <p className="text-xs text-muted-foreground">
-                  Your website assistant
-                </p>
+            ) : (
+              <div className="space-y-3.5 max-w-3xl mx-auto">
+                {localMessages.map((m, i) => (
+                  <MessageBubble
+                    key={m.id}
+                    m={m}
+                    t={t}
+                    initials={initials}
+                    onDelete={() => handleDeleteMessage(i)}
+                    onEdit={(newText) => handleEditMessage(i, newText)}
+                    showToast={showToast}
+                  />
+                ))}
+
+                {isLoading && streamMessages[streamMessages.length - 1]?.role !== 'assistant' && (
+                  <div className="flex items-center gap-2 pl-8">
+                    <div className="flex gap-1">
+                      {[0, 1, 2].map(i => (
+                        <div
+                          key={i}
+                          className="w-2 h-2 rounded-full"
+                          style={{
+                            background: '#a855f7',
+                            animation: `dotBounce .6s ease ${i * 0.15}s infinite`,
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div ref={messagesEndRef} />
               </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
-              
-              {user && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={avatarUrl || undefined} />
-                        <AvatarFallback className="bg-secondary text-muted-foreground">
-                          <User className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate('/profile')}>
-                      <User className="h-4 w-4 mr-2" />
-                      Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={signOut}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Log out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
+            )}
           </div>
-        </div>
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto px-4 space-y-6 pb-4 scrollbar-thin scrollbar-thumb-primary/20">
-          {messages.map((message) => (
-            <ChatMessage
-              key={message.id}
-              role={message.role}
-              content={message.content}
-              files={message.files}
+          {/* Input */}
+          <div style={{ borderTop: `1px solid ${t.border}` }}>
+            <DashboardInputBar
+              t={t}
+              input={input}
+              setInput={setInput}
+              loading={isLoading}
+              sendMessage={(attachments) => handleSendMessage(attachments)}
+              inputRef={inputRef}
             />
-          ))}
-          
-          {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-            <ChatMessage
-              role="assistant"
-              content=""
-              isTyping
-            />
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Starter Prompts */}
-        {showStarterPrompts && (
-          <div className="flex-shrink-0 px-4 pb-2">
-            <div className="flex flex-wrap gap-2 justify-center">
-              {STARTER_PROMPTS.map((prompt) => (
-                <button
-                  key={prompt}
-                  onClick={() => handleSendMessage(prompt)}
-                  disabled={isLoading}
-                  className="text-xs px-3 py-2 rounded-lg border border-border bg-secondary/50 text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-secondary transition-colors disabled:opacity-50"
-                >
-                  {prompt}
-                </button>
-              ))}
-            </div>
           </div>
-        )}
-
-        {/* Input Area */}
-        <div className="flex-shrink-0 p-4 pt-2">
-          <ChatInput onSend={handleSendMessage} disabled={isLoading} />
         </div>
       </div>
+
+      {/* Preferences Panel */}
+      {prefsOpen && (
+        <PreferencesPanel
+          t={t}
+          themeName={themeName}
+          onThemeChange={setThemeName}
+          onClose={() => setPrefsOpen(false)}
+          userName={userName}
+          userEmail={userEmail}
+          initials={initials}
+        />
+      )}
+
+      {/* Toast */}
+      {toastMsg && <UvixToast message={toastMsg} onDone={() => setToastMsg('')} />}
     </div>
   );
 };
