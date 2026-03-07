@@ -20,7 +20,7 @@ export const useStreamingChat = (initialMessages: Message[] = []) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const sendMessage = useCallback(async (content: string, files?: AttachedFile[]) => {
+  const sendMessage = useCallback(async (content: string, files?: AttachedFile[], mode?: string) => {
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -34,14 +34,12 @@ export const useStreamingChat = (initialMessages: Message[] = []) => {
     let assistantContent = '';
     const assistantId = (Date.now() + 1).toString();
 
-    // Create placeholder assistant message
     setMessages((prev) => [
       ...prev,
       { id: assistantId, role: 'assistant', content: '' },
     ]);
 
     try {
-      // Build attachments array for the API
       let attachments: any[] | undefined;
       if (files && files.length > 0) {
         attachments = await Promise.all(
@@ -53,7 +51,6 @@ export const useStreamingChat = (initialMessages: Message[] = []) => {
               const extractedText = f.extractedText || await readFileAsText(f.file);
               return { type: 'text', name: f.file.name, extractedText };
             } else {
-              // PDF/DOC - send as base64
               const data = await readFileAsBase64(f.file);
               return { type: 'document', name: f.file.name, mimeType: f.file.type, data };
             }
@@ -66,7 +63,6 @@ export const useStreamingChat = (initialMessages: Message[] = []) => {
         content: m.content,
       }));
 
-      // Add attachments to the last user message
       if (attachments) {
         (apiMessages[apiMessages.length - 1] as any).attachments = attachments;
       }
@@ -77,32 +73,22 @@ export const useStreamingChat = (initialMessages: Message[] = []) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: apiMessages }),
+        body: JSON.stringify({ messages: apiMessages, mode }),
       });
 
       if (!response.ok) {
         if (response.status === 429) {
-          toast({
-            variant: 'destructive',
-            title: 'Rate limit exceeded',
-            description: 'Please wait a moment before sending another message.',
-          });
+          toast({ variant: 'destructive', title: 'Rate limit exceeded', description: 'Please wait a moment before sending another message.' });
           throw new Error('Rate limited');
         }
         if (response.status === 402) {
-          toast({
-            variant: 'destructive',
-            title: 'Usage limit reached',
-            description: 'Please try again later.',
-          });
+          toast({ variant: 'destructive', title: 'Usage limit reached', description: 'Please try again later.' });
           throw new Error('Payment required');
         }
         throw new Error('Failed to get response');
       }
 
-      if (!response.body) {
-        throw new Error('No response body');
-      }
+      if (!response.body) throw new Error('No response body');
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -124,10 +110,7 @@ export const useStreamingChat = (initialMessages: Message[] = []) => {
           if (!line.startsWith('data: ')) continue;
 
           const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') {
-            streamDone = true;
-            break;
-          }
+          if (jsonStr === '[DONE]') { streamDone = true; break; }
 
           try {
             const parsed = JSON.parse(jsonStr);
@@ -135,13 +118,10 @@ export const useStreamingChat = (initialMessages: Message[] = []) => {
             if (delta) {
               assistantContent += delta;
               setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === assistantId ? { ...m, content: assistantContent } : m
-                )
+                prev.map((m) => m.id === assistantId ? { ...m, content: assistantContent } : m)
               );
             }
           } catch {
-            // Incomplete JSON, put it back
             textBuffer = line + '\n' + textBuffer;
             break;
           }
@@ -166,10 +146,7 @@ export const useStreamingChat = (initialMessages: Message[] = []) => {
             if (imgRes.ok) {
               const imgData = await imgRes.json();
               if (imgData.imageUrl) {
-                processedContent = processedContent.replace(
-                  match[0],
-                  `![Generated Image](${imgData.imageUrl})`
-                );
+                processedContent = processedContent.replace(match[0], `![Generated Image](${imgData.imageUrl})`);
               } else {
                 processedContent = processedContent.replace(match[0], '*Image generation failed.*');
               }
@@ -182,11 +159,10 @@ export const useStreamingChat = (initialMessages: Message[] = []) => {
         }
         assistantContent = processedContent;
         setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantId ? { ...m, content: assistantContent } : m
-          )
+          prev.map((m) => m.id === assistantId ? { ...m, content: assistantContent } : m)
         );
       }
+
       // Final flush
       if (textBuffer.trim()) {
         for (let raw of textBuffer.split('\n')) {
@@ -202,26 +178,17 @@ export const useStreamingChat = (initialMessages: Message[] = []) => {
             if (delta) {
               assistantContent += delta;
               setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === assistantId ? { ...m, content: assistantContent } : m
-                )
+                prev.map((m) => m.id === assistantId ? { ...m, content: assistantContent } : m)
               );
             }
-          } catch {
-            /* ignore partial leftovers */
-          }
+          } catch { /* ignore */ }
         }
       }
     } catch (error) {
       console.error('Streaming error:', error);
-      // Remove empty assistant message on error
       setMessages((prev) => prev.filter((m) => m.id !== assistantId || m.content));
       if (!(error instanceof Error) || !['Rate limited', 'Payment required'].includes(error.message)) {
-        toast({
-          variant: 'destructive',
-          title: 'Something went wrong',
-          description: 'Failed to get a response. Please try again.',
-        });
+        toast({ variant: 'destructive', title: 'Something went wrong', description: 'Failed to get a response. Please try again.' });
       }
     } finally {
       setIsLoading(false);
