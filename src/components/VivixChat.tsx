@@ -12,12 +12,15 @@ import DashboardInputBar, { Attachment } from './dashboard/DashboardInputBar';
 import MessageBubble from './dashboard/MessageBubble';
 import PreferencesPanel from './dashboard/PreferencesPanel';
 import UvixToast from './dashboard/UvixToast';
+import CodingToolbar from './dashboard/CodingToolbar';
 import BotSVG from './dashboard/BotSVG';
 import type { AttachedFile } from './FilePreview';
 
 const SUGGESTION_CHIPS = [
   { icon: '💻', text: 'Write a Python async function' },
   { icon: '🔬', text: 'Explain RAG architecture' },
+  { icon: '🐛', text: 'Review my code for bugs' },
+  { icon: '⚔️', text: 'Give me a coding challenge' },
   { icon: '✍️', text: 'Help improve my writing' },
   { icon: '📄', text: 'Summarise a document' },
 ];
@@ -139,7 +142,7 @@ const VivixChat = () => {
 
     // Convert attachments to AttachedFile format for streaming
     const files: AttachedFile[] | undefined = attachments?.map(a => ({ file: a.file }));
-    await streamSend(input.trim(), files);
+    await streamSend(input.trim(), files, undefined);
     setInput('');
   }, [input, isLoading, activeConversationId, createConversation, streamMessages, updateConversationTitle, saveDbMessage, streamSend]);
 
