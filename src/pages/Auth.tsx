@@ -58,17 +58,6 @@ const Input = ({
   </div>
 );
 
-const SocialButton = ({ label, onClick }: { label: string; onClick: () => void }) => (
-  <button
-    onClick={onClick}
-    className="w-full py-3 rounded-lg border text-sm font-medium transition-colors duration-200"
-    style={{ background: '#1c1c1c', borderColor: '#2a2a2a', color: '#ccc', fontFamily: "'Space Grotesk', sans-serif" }}
-    onMouseEnter={(e) => { e.currentTarget.style.background = '#222'; e.currentTarget.style.borderColor = '#3a3a3a'; e.currentTarget.style.color = '#fff'; }}
-    onMouseLeave={(e) => { e.currentTarget.style.background = '#1c1c1c'; e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#ccc'; }}
-  >
-    {label}
-  </button>
-);
 
 const getPasswordStrength = (pw: string) => {
   let score = 0;
@@ -155,10 +144,6 @@ const Auth = () => {
     } finally { setIsLoading(false); }
   };
 
-  const handleSocial = async (provider: 'google' | 'github') => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: `${window.location.origin}/` } });
-    if (error) toast({ variant: 'destructive', title: 'Login failed', description: error.message });
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,19 +191,6 @@ const Auth = () => {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Social buttons for login/signup */}
-              {page !== 'forgot' && (
-                <>
-                  <SocialButton label="Continue with Google" onClick={() => handleSocial('google')} />
-                  <SocialButton label="Continue with GitHub" onClick={() => handleSocial('github')} />
-                  <div className="flex items-center gap-3 my-2">
-                    <div className="flex-1 h-px" style={{ background: '#222' }} />
-                    <span className="text-[12px]" style={{ color: '#555', fontFamily: "'Space Grotesk', sans-serif" }}>
-                      {page === 'signup' ? 'or sign up with email' : 'or'}
-                    </span>
-                    <div className="flex-1 h-px" style={{ background: '#222' }} />
-                  </div>
-                </>
-              )}
 
               {page === 'signup' && (
                 <Input label="Full name" value={displayName} onChange={setDisplayName} placeholder="Jane Doe" error={errors.name} />
