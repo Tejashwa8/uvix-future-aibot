@@ -214,7 +214,7 @@ const VivixChat = () => {
                 <div style={{ fontFamily: 'Orbitron', fontWeight: 700, fontSize: 17, marginTop: 16, color: t.text }}>UVIX AI</div>
                 <div style={{ fontSize: 14, color: t.sub, marginTop: 6 }}>What can I help you with today?</div>
 
-                <div className="grid grid-cols-2 gap-2.5 mt-6" style={{ maxWidth: 440 }}>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mt-6" style={{ maxWidth: 540 }}>
                   {SUGGESTION_CHIPS.map(chip => (
                     <button
                       key={chip.text}
@@ -268,6 +268,15 @@ const VivixChat = () => {
               </div>
             )}
           </div>
+
+          {/* Coding Toolbar */}
+          <CodingToolbar
+            t={t}
+            onAction={async (prompt, mode) => {
+              setInput(prompt);
+              inputRef.current?.focus();
+            }}
+          />
 
           {/* Input */}
           <div style={{ borderTop: `1px solid ${t.border}` }}>
