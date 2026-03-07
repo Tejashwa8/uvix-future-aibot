@@ -2,6 +2,7 @@ import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Pencil, Copy, Trash2, Download } from 'lucide-react';
 import BotSVG from './BotSVG';
+import CodeBlock from './CodeBlock';
 import { ThemeTokens } from '@/hooks/useUvixTheme';
 import { S } from '@/lib/sounds';
 
@@ -172,8 +173,15 @@ const MessageBubble = ({ m, t, initials, onDelete, onEdit, showToast }: MessageB
                 <ReactMarkdown
                   components={{
                     p: (props) => <p style={{ fontSize: 14, lineHeight: 1.75, marginBottom: 8 }} {...props} />,
-                    code: (props) => <code style={{ background: 'rgba(168,85,247,.15)', padding: '2px 6px', borderRadius: 4, fontSize: 13 }} {...props} />,
-                    pre: (props) => <pre style={{ background: 'rgba(0,0,0,.3)', padding: 12, borderRadius: 8, overflowX: 'auto', fontSize: 13, marginBottom: 8 }} {...props} />,
+                    code: ({ className, children, ...props }) => {
+                      const match = /language-(\w+)/.exec(className || '');
+                      const codeStr = String(children).replace(/\n$/, '');
+                      if (match || codeStr.includes('\n')) {
+                        return <CodeBlock code={codeStr} language={match?.[1]} t={t} showToast={showToast} />;
+                      }
+                      return <code style={{ background: 'rgba(168,85,247,.15)', padding: '2px 6px', borderRadius: 4, fontSize: 13 }} {...props}>{children}</code>;
+                    },
+                    pre: ({ children }) => <>{children}</>,
                     strong: (props) => <strong style={{ color: t.text }} {...props} />,
                     a: (props) => <a target="_blank" rel="noopener noreferrer" style={{ color: '#a855f7' }} {...props} />,
                     ul: (props) => <ul style={{ listStyle: 'disc', paddingLeft: 20, marginBottom: 8 }} {...props} />,
